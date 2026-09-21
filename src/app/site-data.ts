@@ -35,7 +35,7 @@ export const COURSES: Course[] = [
     id: 'acls',
     code: 'ACLS',
     name: 'Advanced Cardiovascular Life Support',
-    image: '/media/acls.jpg',
+    image: 'media/acls.jpg',
     summary: 'Team response for cardiac arrest and peri-arrest care.',
     detail:
       'Practice the rhythm of a resuscitation team: role clarity, airway and circulation priorities, and decisions when the monitor changes. Built for clinicians who must lead or support the first critical minutes.',
@@ -44,7 +44,7 @@ export const COURSES: Course[] = [
     id: 'atls',
     code: 'ATLS',
     name: 'Advanced Trauma Life Support',
-    image: '/media/atls.jpg',
+    image: 'media/atls.jpg',
     summary: 'Systematic assessment and resuscitation of injured patients.',
     detail:
       'A structured approach to trauma: primary survey, immediate threats, and the handoffs that keep care moving. Scenarios emphasize priorities under time pressure, not checklist recitation.',
@@ -53,7 +53,7 @@ export const COURSES: Course[] = [
     id: 'phtls',
     code: 'PHTLS',
     name: 'Prehospital Trauma Life Support',
-    image: '/media/phtls.jpg',
+    image: 'media/phtls.jpg',
     summary: 'Stabilize and move patients before hospital arrival.',
     detail:
       'For clinicians who meet the patient outside the hospital. Training covers scene priorities, packaging, and the information a receiving team needs when the doors open.',
@@ -62,7 +62,7 @@ export const COURSES: Course[] = [
     id: 'bls',
     code: 'BLS',
     name: 'Basic Life Support',
-    image: '/media/bls.jpg',
+    image: 'media/bls.jpg',
     summary: 'Recognition, high-quality CPR, and early defibrillation.',
     detail:
       'The foundation under every advanced course. Participants rehearse recognition, compressions, ventilation, and defibrillation until the sequence is reliable.',
@@ -71,7 +71,7 @@ export const COURSES: Course[] = [
     id: 'critical-care',
     code: 'Critical Care',
     name: 'Essentials & Advanced',
-    image: '/media/critical.jpg',
+    image: 'media/critical.jpg',
     summary: 'Care for unstable, high-acuity patients.',
     detail:
       'From first-hour essentials to advanced deterioration. Courses connect monitoring, teamwork, and judgment for patients who can change in a single cycle of the monitor.',
@@ -80,7 +80,7 @@ export const COURSES: Course[] = [
     id: 'simulation',
     code: 'Simulation',
     name: 'Scenario-Based Training',
-    image: '/media/simulation.jpg',
+    image: 'media/simulation.jpg',
     summary: 'Rehearse the critical moment, then debrief it.',
     detail:
       'High-fidelity scenarios place teams inside a believable case. Faculty pause the action only to make the next performance sharper — skills, communication, and systems together.',
