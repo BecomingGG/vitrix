@@ -20,7 +20,10 @@ let nextMark = 0;
       </defs>
       <path [attr.fill]="'url(#' + steel + ')'" d="M2 2h26L62 90H36Z" />
       <path [attr.fill]="'url(#' + steelAlt + ')'" d="M98 2H72L38 90h26Z" />
-      <path class="bolt" d="M56 6 42 36h16L36 86l40-54H58L72 6Z" />
+      <polyline
+        class="ecg"
+        points="4,50 16,50 22,44 28,50 34,50 39,58 47,14 55,72 61,50 70,50 78,42 86,50 96,50"
+      />
     </svg>
   `,
   styles: `
@@ -35,9 +38,13 @@ let nextMark = 0;
       height: auto;
     }
 
-    .bolt {
-      fill: #ff1a2e;
-      filter: drop-shadow(0 0 5px rgba(255, 26, 46, 0.9));
+    .ecg {
+      fill: none;
+      stroke: #ff1a2e;
+      stroke-width: 4.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter: drop-shadow(0 0 4px rgba(255, 26, 46, 0.95));
     }
   `,
 })
