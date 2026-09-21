@@ -1,0 +1,26 @@
+<section class="page-hero">
+  <div class="wrap">
+    <p class="eyebrow">Our programs</p>
+    <h1>Courses that make a difference</h1>
+    <p class="lede">
+      Resuscitation, trauma, critical care, and scenario-based simulation. Each course is built to
+      be practiced, not only studied.
+    </p>
+  </div>
+</section>
+
+<section class="page-section">
+  <div class="wrap course-list">
+    @for (course of courses; track course.id) {
+      <article class="course-row" [id]="course.id">
+        <img [src]="course.image" [alt]="course.code + ' scenario'" />
+        <div>
+          <p class="eyebrow">{{ course.code }}</p>
+          <h2>{{ course.name }}</h2>
+          <p>{{ course.detail }}</p>
+          <a class="btn btn-ghost" routerLink="/apply">Apply now <span aria-hidden="true">→</span></a>
+        </div>
+      </article>
+    }
+  </div>
+</section>

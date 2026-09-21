@@ -1,0 +1,177 @@
+<section class="hero">
+  <div class="hero-atmosphere" aria-hidden="true"></div>
+  <div class="wrap hero-layout">
+    <div class="hero-copy">
+      <p class="kicker">
+        Real scenarios.<br />
+        Real skills.<br />
+        Real impact.
+      </p>
+      <h1>
+        Prepare<br />
+        Perform<br />
+        Save lives
+      </h1>
+      <a class="btn btn-red" routerLink="/courses">
+        Explore our courses
+        <span aria-hidden="true">→</span>
+      </a>
+    </div>
+
+    <div class="hero-brand">
+      <app-mark class="hero-mark" />
+      <p class="wordmark">VITRI<span>X</span></p>
+      <p class="institute">
+        Institute of Emergency Medicine,<br />
+        Simulation &amp; Human Performance
+      </p>
+      <p class="tagline">Built for the critical moment</p>
+    </div>
+
+    <div class="hero-side">
+      <p class="side-kicker">
+        People<br />
+        Skills<br />
+        Systems<br />
+        Better outcomes
+      </p>
+      <div class="monitor" aria-hidden="true">
+        <svg viewBox="0 0 220 70" class="ecg">
+          <polyline points="0,36 36,36 48,36 58,14 70,58 82,28 94,36 220,36" />
+        </svg>
+        <ol>
+          <li>120</li>
+          <li>98</li>
+          <li>20</li>
+        </ol>
+      </div>
+      <p class="side-note">
+        More than<br />
+        education —<br />
+        a safer tomorrow.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="features" aria-label="How VITRIX trains">
+  @for (pillar of pillars; track pillar.title; let i = $index) {
+    <article>
+      <div class="feature-icon" aria-hidden="true">
+        @switch (i) {
+          @case (0) {
+            <svg viewBox="0 0 48 48">
+              <path
+                d="M24 8c-3 0-5 2-6 4-3-1-7 1-8 4-3 1-5 4-4 7 0 3 2 5 4 6-1 3 0 6 2 8 3 2 6 2 8 1 1 3 4 6 8 6s7-3 8-6c2 1 5 1 8-1 2-2 3-5 2-8 2-1 4-3 4-6 1-3-1-6-4-7-1-3-5-5-8-4-1-2-3-4-6-4h-4z"
+              />
+              <path d="M24 14v22M18 22c2 2 4 2 6 0M24 22c2 2 4 2 6 0" />
+            </svg>
+          }
+          @case (1) {
+            <svg viewBox="0 0 48 48">
+              <rect x="8" y="12" width="32" height="22" rx="2" />
+              <path d="M8 28h6l3-8 4 14 3-6h16" />
+              <path d="M20 34v4M28 34v4" />
+            </svg>
+          }
+          @case (2) {
+            <svg viewBox="0 0 48 48">
+              <circle cx="24" cy="16" r="5" />
+              <circle cx="12" cy="20" r="4" />
+              <circle cx="36" cy="20" r="4" />
+              <path d="M14 36c1-6 5-8 10-8s9 2 10 8M6 36c1-4 3-6 6-6M42 36c-1-4-3-6-6-6" />
+            </svg>
+          }
+          @default {
+            <svg viewBox="0 0 48 48">
+              <path d="M10 34V26M18 34V20M26 34V14M34 34V22" />
+              <path d="M8 38h32" />
+            </svg>
+          }
+        }
+      </div>
+      <h2>{{ pillar.title }}</h2>
+      <p>
+        @for (line of pillar.lines; track line) {
+          {{ line }}<br />
+        }
+      </p>
+    </article>
+  }
+</section>
+
+<section class="reality">
+  <div class="wrap reality-grid">
+    <div>
+      <h2>Train<br />for reality</h2>
+      <p>
+        VITRIX is a modern education and simulation institute focused on emergency medicine, critical
+        care and human performance.
+      </p>
+      <p>
+        We bridge knowledge, hands-on training and real-world experience to prepare healthcare
+        professionals for the moments that matter.
+      </p>
+      <a class="btn btn-ghost" routerLink="/about">
+        About Vitrix
+        <span aria-hidden="true">→</span>
+      </a>
+    </div>
+    <figure>
+      <img
+        src="/media/clinical.jpg"
+        alt="Clinician in surgical cap and mask working at the bedside beside a patient monitor"
+      />
+    </figure>
+  </div>
+</section>
+
+<section class="stats" aria-label="Institute figures">
+  @for (stat of stats; track stat.label) {
+    <article>
+      <strong>{{ stat.value }}</strong>
+      <span>{{ stat.label }}</span>
+    </article>
+  }
+</section>
+
+<section class="programs">
+  <div class="wrap">
+    <div class="programs-head">
+      <div>
+        <p class="eyebrow">Our programs</p>
+        <h2>Courses that make a difference</h2>
+      </div>
+      <a class="btn btn-ghost" routerLink="/courses">
+        View all courses
+        <span aria-hidden="true">→</span>
+      </a>
+    </div>
+
+    <div class="course-grid">
+      @for (course of courses; track course.id) {
+        <a class="course-card" [routerLink]="['/courses']" [fragment]="course.id">
+          <img [src]="course.image" [alt]="course.code + ' training'" />
+          <div>
+            <h3>{{ course.code }}</h3>
+            <p>{{ course.name }}</p>
+            <span aria-hidden="true">→</span>
+          </div>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+
+<section class="closing">
+  <div class="wrap closing-grid">
+    <h2>
+      Because<br />
+      people behind skills<br />
+      save lives
+    </h2>
+    <blockquote>
+      <p>“A more prepared healthcare community. A safer tomorrow.”</p>
+    </blockquote>
+  </div>
+</section>

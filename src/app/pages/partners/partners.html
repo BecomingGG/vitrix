@@ -1,0 +1,24 @@
+<section class="page-hero">
+  <div class="wrap">
+    <p class="eyebrow">A global vision</p>
+    <h1>Partners</h1>
+    <p class="lede">
+      VITRIX trains with hospitals, EMS agencies, universities, and simulation centers that want
+      teams ready for the critical moment.
+    </p>
+  </div>
+</section>
+
+<section class="page-section">
+  <div class="wrap card-grid">
+    @for (partner of partners; track partner.title) {
+      <article class="info-card">
+        <h2>{{ partner.title }}</h2>
+        <p>{{ partner.text }}</p>
+      </article>
+    }
+  </div>
+  <div class="wrap faculty-cta">
+    <a class="btn btn-ghost" routerLink="/contact">Start a partnership <span aria-hidden="true">→</span></a>
+  </div>
+</section>

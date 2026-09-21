@@ -1,0 +1,74 @@
+<section class="page-hero">
+  <div class="wrap">
+    <p class="eyebrow">Admissions</p>
+    <h1>Apply now</h1>
+    <p class="lede">
+      Tell us which program you want and the clinical world you already work in. We will use it to
+      place you with the right cohort.
+    </p>
+  </div>
+</section>
+
+<section class="page-section">
+  <div class="wrap split form-split">
+    <div>
+      <h2>Start an application</h2>
+      <p>
+        Courses cover resuscitation, trauma, critical care, and simulation. Share enough background
+        for faculty to see where you train today.
+      </p>
+    </div>
+
+    @if (sent()) {
+      <div class="notice" role="status">
+        <h2>Application noted</h2>
+        <p>
+          Thanks, {{ form.controls.name.value }}. Your interest in
+          {{ form.controls.course.value }} is saved in this session only. A live admissions desk is
+          not connected yet.
+        </p>
+      </div>
+    } @else {
+      <form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <label>
+          Name
+          <input type="text" formControlName="name" autocomplete="name" />
+          @if (invalid('name')) {
+            <span class="error">Enter your name.</span>
+          }
+        </label>
+        <label>
+          Email
+          <input type="email" formControlName="email" autocomplete="email" />
+          @if (invalid('email')) {
+            <span class="error">Enter a valid email.</span>
+          }
+        </label>
+        <label>
+          Phone
+          <input type="tel" formControlName="phone" autocomplete="tel" />
+        </label>
+        <label>
+          Course
+          <select formControlName="course">
+            <option value="" disabled>Select a program</option>
+            @for (course of courses; track course.id) {
+              <option [value]="course.code">{{ course.code }} — {{ course.name }}</option>
+            }
+          </select>
+          @if (invalid('course')) {
+            <span class="error">Choose a course.</span>
+          }
+        </label>
+        <label>
+          Clinical background
+          <textarea rows="5" formControlName="background"></textarea>
+          @if (invalid('background')) {
+            <span class="error">Tell us where you practice.</span>
+          }
+        </label>
+        <button class="btn btn-red" type="submit">Submit application</button>
+      </form>
+    }
+  </div>
+</section>
