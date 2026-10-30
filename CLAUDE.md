@@ -40,6 +40,7 @@ No test files exist yet (`skipTests: true` in angular.json).
 | [src/app/site-data.ts](src/app/site-data.ts) | All content: nav, courses, faculty, partners, stats. Edit text here. |
 | [src/app/auth.ts](src/app/auth.ts) | `Auth` service (login / register / logout, current member signal) and `authGuard`. |
 | [src/app/auth.config.ts](src/app/auth.config.ts) | Identity server URL, client id `vitrix`, scopes, and when login is switched on. |
+| [src/app/notify.ts](src/app/notify.ts) | `Notify` service: short toast messages (`success`, `info`, `error`), shown by the app shell. |
 | [src/app/layout/](src/app/layout/) | Header (nav, search, login link, mobile menu) and footer. |
 | [src/app/mark.ts](src/app/mark.ts) | The VITRIX logo as an SVG component. |
 | `src/app/pages/*` | One folder per page: home, about, courses, simulation, faculty, partners, contact, apply, login, account. |
@@ -60,8 +61,9 @@ VITRIX shows its **own login form** — visitors never leave the site:
 
 Pages:
 
-- `/login` — two tabs, **Log in** and **Create account**. After success it goes to the
-  `?redirect=` URL or `/account`.
+- `/login` — two tabs, **Log in** and **Create account**. Creating an account signs the member
+  in straight away; both then go to the `?redirect=` URL or `/account` with a toast ("Account
+  created. Welcome…" / "Welcome back…"). Logging out shows "You have been logged out.".
 - `/account` and `/apply` — protected by `authGuard` (not signed in → `/login?redirect=...`).
   Apply is pre-filled with the member's name and email.
 - Header shows "Log in" or the member's name; mobile menu shows "Log in" / "My account".
