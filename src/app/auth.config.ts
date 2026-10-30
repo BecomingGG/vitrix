@@ -7,12 +7,12 @@
  * (GitHub Pages) uses the deployed one on Render. Set PRODUCTION_IDENTITY_URL to '' to switch
  * login off on the published site (links hidden, pages open to everyone).
  */
-const LOCAL_IDENTITY_URL = 'http://localhost:8080';
-const PRODUCTION_IDENTITY_URL = 'https://vitrix-identity.onrender.com'; // Render (identity-api)
+const LOCAL_IDENTITY_URL: string = 'http://localhost:8080';
+const PRODUCTION_IDENTITY_URL: string = 'https://vitrix-identity.onrender.com'; // Render (identity-api)
 
 const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
-export const IDENTITY_URL = isLocal ? LOCAL_IDENTITY_URL : PRODUCTION_IDENTITY_URL;
+export const IDENTITY_URL: string = isLocal ? LOCAL_IDENTITY_URL : PRODUCTION_IDENTITY_URL;
 export const AUTH_ENABLED = IDENTITY_URL !== '';
 
 /** Registered in identity-api (appsettings.Development.json) with the "password" grant. */
