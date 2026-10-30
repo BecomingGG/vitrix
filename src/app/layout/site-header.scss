@@ -1,3 +1,41 @@
 :host {
   display: contents;
 }
+
+.account {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.account-link {
+  padding: 8px 4px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-family: var(--display);
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.account-link:hover {
+  color: var(--red);
+}
+
+.mobile-nav .account-link {
+  padding: 10px 0;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+@media (max-width: 860px) {
+  .header-actions .account,
+  .header-actions .account-link {
+    display: none;
+  }
+}

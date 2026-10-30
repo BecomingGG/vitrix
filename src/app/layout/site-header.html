@@ -30,6 +30,14 @@
         <path d="M16 16.5 20.5 21" />
       </svg>
     </button>
+    @if (auth.enabled) {
+      @if (auth.user(); as user) {
+        <span class="account" [title]="user.email">{{ user.name }}</span>
+        <button type="button" class="account-link" (click)="auth.logout()">Sign out</button>
+      } @else {
+        <button type="button" class="account-link" (click)="auth.login()">Sign in</button>
+      }
+    }
     <a class="btn btn-red" routerLink="/apply">Apply now</a>
     <button
       type="button"
@@ -83,6 +91,15 @@
       >
         {{ item.label }}
       </a>
+    }
+    @if (auth.enabled) {
+      @if (auth.user(); as user) {
+        <button type="button" class="account-link" (click)="auth.logout()">
+          Sign out ({{ user.email }})
+        </button>
+      } @else {
+        <button type="button" class="account-link" (click)="auth.login()">Sign in</button>
+      }
     }
     <a class="btn btn-red" routerLink="/apply">Apply now</a>
   </nav>

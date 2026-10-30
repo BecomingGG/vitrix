@@ -5,6 +5,7 @@ import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { SiteFooter } from './layout/site-footer';
 import { SiteHeader } from './layout/site-header';
+import { AuthService } from './auth/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -17,6 +18,9 @@ export class App {
     const router = inject(Router);
     const title = inject(Title);
     const destroyRef = inject(DestroyRef);
+
+    // Restore the signed-in session, or finish a login coming back from the identity server.
+    inject(AuthService).init();
 
     router.events
       .pipe(

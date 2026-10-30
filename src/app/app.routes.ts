@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { signedInGuard } from './auth/auth.guard';
 
 export const routes: Routes = [
   {
@@ -39,7 +40,13 @@ export const routes: Routes = [
   {
     path: 'apply',
     data: { title: 'Apply' },
+    canActivate: [signedInGuard],
     loadComponent: () => import('./pages/apply/apply').then((m) => m.Apply),
+  },
+  {
+    path: 'callback',
+    data: { title: 'Signing in' },
+    loadComponent: () => import('./auth/callback').then((m) => m.Callback),
   },
   { path: '**', redirectTo: '' },
 ];
