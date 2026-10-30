@@ -1,5 +1,8 @@
 # Vitrix
 
+Website for the VITRIX emergency-medicine training institute. See [CLAUDE.md](CLAUDE.md) for the
+project overview, code map, login notes, and roadmap.
+
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.6.
 
 ## Development server

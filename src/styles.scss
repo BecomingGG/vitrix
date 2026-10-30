@@ -211,6 +211,20 @@ p {
   gap: 12px;
 }
 
+.account-link {
+  color: #d5d5d8;
+  font-size: 14px;
+  max-width: 16ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-link:hover,
+.account-link.is-active {
+  color: #fff;
+}
+
 .icon-btn {
   width: 36px;
   height: 36px;
@@ -931,6 +945,38 @@ p {
   font-size: 36px;
 }
 
+.form-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid var(--line);
+}
+
+.form-tabs button {
+  background: transparent;
+  border: 0;
+  padding: 10px 0;
+  cursor: pointer;
+  color: var(--muted);
+  font-family: var(--display);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.form-tabs button[aria-selected='true'] {
+  color: #fff;
+  box-shadow: inset 0 -2px 0 var(--red);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.account-cta {
+  margin-top: 22px;
+  margin-right: 12px;
+}
+
 @media (max-width: 1100px) {
   .course-grid {
     grid-template-columns: repeat(3, 1fr);
@@ -963,7 +1009,8 @@ p {
     display: grid;
   }
 
-  .header-actions .btn {
+  .header-actions .btn,
+  .header-actions .account-link {
     display: none;
   }
 
