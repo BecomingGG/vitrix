@@ -4,9 +4,10 @@ VITRIX is a website for an emergency-medicine training institute (Tbilisi, Georg
 Medical students and clinicians browse courses (ACLS, ATLS, PHTLS, BLS, Critical Care,
 Simulation), apply, and — eventually — buy courses and see them in their account.
 
-The site is a **static Angular app** published on **GitHub Pages**. Accounts come from the
-separate **identity-api** server (OpenID Connect, repo `BecomingGG/identity-api`), which is not
-deployed yet, so login only works when running locally. Forms have no backend yet.
+The site is a **static Angular app** published on **GitHub Pages**
+(<https://becominggg.github.io/vitrix/>, from the `gh-pages` branch). Accounts come from the
+separate **identity-api** server (repo `BecomingGG/identity-api`), deployed on Render at
+<https://vitrix-identity.onrender.com> with a Neon Postgres database. Forms have no backend yet.
 
 ## Commands
 
@@ -71,11 +72,24 @@ Pages:
 - `Member.courses` is a list of course `id`s from `COURSES`. Nothing fills it yet — that is the
   job of the future purchase flow (an API that validates the identity server's tokens).
 
-**When login is on:** only when the site runs on `localhost` (identity server at
-`http://localhost:8080`). On GitHub Pages `Auth.enabled` is false: login links are hidden and
-`authGuard` lets everyone through, so the live site works as before. After identity-api is
-deployed, set `PRODUCTION_IDENTITY_URL` in `auth.config.ts` and add the site's origin to the
-server's CORS allowed origins.
+**Which server:** on `localhost` the site uses the identity server from docker compose
+(`http://localhost:8080`); the published site uses `https://vitrix-identity.onrender.com`
+(`PRODUCTION_IDENTITY_URL` in `auth.config.ts`; set it to `''` to switch login off there —
+links hidden, pages open). The Render server allows requests from `https://becominggg.github.io`
+(CORS, set in identity-api's `render.yaml`). On Render's free plan the server sleeps after 15
+minutes idle, so the first login after a quiet period takes about a minute.
+
+### Publishing the site
+
+GitHub Pages serves the `gh-pages` branch. Build with the `/vitrix/` base path and publish the
+contents of `dist/vitrix/browser` (plus a copy of `index.html` as `404.html`, so deep links like
+`/vitrix/login` work):
+
+```bash
+npx ng build --base-href /vitrix/
+cp dist/vitrix/browser/index.html dist/vitrix/browser/404.html
+# then commit the contents of dist/vitrix/browser to the gh-pages branch
+```
 
 ### Running locally with login
 
@@ -86,7 +100,7 @@ Port 4200 is also used by `identity-web` (the test client); run one of them at a
 
 ## Roadmap / not done yet
 
-1. Deploy identity-api (e.g. Render + Neon) and switch login on for the published site.
+1. ~~Deploy identity-api~~ done (Render + Neon). Consider Render's paid plan so it never sleeps.
 2. Course purchase: a "Buy" button on each course → payment (e.g. Stripe Checkout or a Georgian
    bank gateway such as TBC / Bank of Georgia) → webhook writes the enrollment. Payments need a
    server-side piece (provider function / edge function); never trust the browser to mark a

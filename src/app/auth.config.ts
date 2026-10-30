@@ -3,13 +3,12 @@
  * to the server directly (OAuth password grant + POST /api/account/register), so visitors never
  * leave the site.
  *
- * The identity server only runs locally for now, so login is switched on only when the site
- * itself runs on localhost. On the published site (GitHub Pages) the login links are hidden and
- * every page stays open, exactly as before. When identity-api is deployed, set
- * PRODUCTION_IDENTITY_URL and add the site's origin to the server's CORS allowed origins.
+ * Locally (localhost) the site uses the identity server from docker compose; the published site
+ * (GitHub Pages) uses the deployed one on Render. Set PRODUCTION_IDENTITY_URL to '' to switch
+ * login off on the published site (links hidden, pages open to everyone).
  */
 const LOCAL_IDENTITY_URL = 'http://localhost:8080';
-const PRODUCTION_IDENTITY_URL = ''; // e.g. 'https://auth.vitrix.ge'
+const PRODUCTION_IDENTITY_URL = 'https://vitrix-identity.onrender.com'; // Render (identity-api)
 
 const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
