@@ -41,10 +41,11 @@ No test files exist yet (`skipTests: true` in angular.json).
 | [src/app/site-data.ts](src/app/site-data.ts) | All content: nav, courses, faculty, partners, stats. Edit text here. |
 | [src/app/auth.ts](src/app/auth.ts) | `Auth` service (login / register / logout, current member signal) and `authGuard`. |
 | [src/app/auth.config.ts](src/app/auth.config.ts) | Identity server URL, client id `vitrix`, scopes, and when login is switched on. |
+| [src/app/pages/privacy/](src/app/pages/privacy/) | Privacy policy page (`/privacy`, linked in the footer and on sign-up). Contact email: `PRIVACY_CONTACT_EMAIL` in `site-data.ts`. |
 | [src/app/notify.ts](src/app/notify.ts) | `Notify` service: short toast messages (`success`, `info`, `error`), shown by the app shell. |
 | [src/app/layout/](src/app/layout/) | Header (nav, search, login link, mobile menu) and footer. |
 | [src/app/mark.ts](src/app/mark.ts) | The VITRIX logo as an SVG component. |
-| `src/app/pages/*` | One folder per page: home, about, courses, simulation, faculty, partners, contact, apply, login, account. |
+| `src/app/pages/*` | One folder per page: home, about, courses, simulation, faculty, partners, contact, apply, login, account, privacy. |
 
 ## Login (current state)
 
@@ -58,7 +59,19 @@ VITRIX shows its **own login form** — visitors never leave the site:
   refresh token. Both are kept in `localStorage` (`vitrix.session`); the access token is
   refreshed a minute before it expires, so members stay signed in across visits.
 - Server rules: passwords need 8+ characters with upper and lower case, a number and a symbol;
-  5 wrong passwords lock the account for 15 minutes. Error texts come from the server.
+  5 wrong passwords lock the account for 15 minutes; max 5 new accounts per hour per IP.
+  Error texts come from the server.
+
+Privacy and spam protection:
+
+- **Consent:** Create account requires ticking "I agree to the privacy policy"
+  (`acceptPrivacy`); the server refuses sign-ups without it and records the time.
+- **Honeypot:** the sign-up form has a hidden `website` field (class `.trap`, off-screen,
+  `aria-hidden`). People never fill it; bots do, and the server then silently creates nothing.
+  Don't remove it or make it visible.
+- **Delete account:** My account → Delete account (asks for the password) calls
+  `DELETE {IDENTITY_URL}/api/account` and signs out. It removes the user and all their tokens.
+- If bot sign-ups ever get through anyway, the next step is Cloudflare Turnstile (free CAPTCHA).
 
 Pages:
 
@@ -108,6 +121,7 @@ Port 4200 is also used by `identity-web` (the test client); run one of them at a
 3. Course content for enrolled students (lessons, materials, schedules) under `/account`.
 4. Connect Apply and Contact forms to a real inbox (they currently only show a confirmation).
 5. Password reset and email verification (identity-api needs an email sender).
-6. Footer year is hard-coded in [src/app/layout/site-footer.ts](src/app/layout/site-footer.ts).
+6. Set `PRIVACY_CONTACT_EMAIL` in `site-data.ts` to a real, monitored address.
+7. Self-host the Google Fonts (privacy: Google currently receives visitors' IP addresses).
 
 Update this file when you finish a roadmap item or change how something works.

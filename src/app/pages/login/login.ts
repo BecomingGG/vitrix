@@ -1,12 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Auth } from '../../auth';
 import { Notify } from '../../notify';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './login.html',
 })
 export class Login {
@@ -27,18 +27,23 @@ export class Login {
     name: [''],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
+    acceptPrivacy: [false],
+    /** Honeypot: hidden from people, only bots fill it in (see .trap in styles.scss). */
+    website: [''],
   });
 
   setMode(mode: 'login' | 'register'): void {
     this.mode.set(mode);
     this.failure.set('');
     this.success.set('');
-    const name = this.form.controls.name;
+    const { name, acceptPrivacy } = this.form.controls;
     name.setValidators(mode === 'register' ? Validators.required : null);
     name.updateValueAndValidity();
+    acceptPrivacy.setValidators(mode === 'register' ? Validators.requiredTrue : null);
+    acceptPrivacy.updateValueAndValidity();
   }
 
-  invalid(control: 'name' | 'email' | 'password'): boolean {
+  invalid(control: 'name' | 'email' | 'password' | 'acceptPrivacy'): boolean {
     const field = this.form.controls[control];
     return field.invalid && field.touched;
   }
@@ -48,13 +53,13 @@ export class Login {
       this.form.markAllAsTouched();
       return;
     }
-    const { name, email, password } = this.form.getRawValue();
+    const { name, email, password, acceptPrivacy, website } = this.form.getRawValue();
     this.busy.set(true);
     this.failure.set('');
     this.success.set('');
     try {
       if (this.mode() === 'register') {
-        await this.createAccount(name, email, password);
+        await this.createAccount(name, email, password, acceptPrivacy, website);
       } else {
         await this.auth.login(email, password);
         this.notify.success(`Welcome back, ${this.auth.user()?.name ?? 'member'}.`);
@@ -68,8 +73,15 @@ export class Login {
   }
 
   /** Creates the account, then signs the new member in straight away. */
-  private async createAccount(name: string, email: string, password: string): Promise<void> {
-    await this.auth.register(name, email, password); // errors here stay on the Create account tab
+  private async createAccount(
+    name: string,
+    email: string,
+    password: string,
+    acceptPrivacy: boolean,
+    website: string,
+  ): Promise<void> {
+    // Errors here stay on the Create account tab.
+    await this.auth.register(name, email, password, { acceptPrivacy, website });
 
     try {
       await this.auth.login(email, password);

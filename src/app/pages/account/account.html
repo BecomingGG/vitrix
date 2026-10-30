@@ -30,5 +30,38 @@
     }
 
     <button type="button" class="btn btn-ghost account-cta" (click)="logout()">Log out</button>
+
+    <div class="danger-zone">
+      <h2>Delete account</h2>
+      <p>
+        Permanently removes your name, email, password and sign-in records. This cannot be undone.
+        See the <a routerLink="/privacy">privacy policy</a> for what we store.
+      </p>
+
+      @if (!confirmingDelete()) {
+        <button type="button" class="btn btn-danger" (click)="startDelete()">
+          Delete my account
+        </button>
+      } @else {
+        <form class="form" [formGroup]="deleteForm" (ngSubmit)="deleteAccount()" novalidate>
+          <label>
+            Confirm with your password
+            <input type="password" formControlName="password" autocomplete="current-password" />
+            @if (deleteForm.controls.password.invalid && deleteForm.controls.password.touched) {
+              <span class="error">Enter your password.</span>
+            }
+          </label>
+          @if (deleteError()) {
+            <p class="error" role="alert">{{ deleteError() }}</p>
+          }
+          <div class="form-actions">
+            <button class="btn btn-red" type="submit" [disabled]="deleting()">
+              {{ deleting() ? 'Deleting…' : 'Delete permanently' }}
+            </button>
+            <button class="btn btn-ghost" type="button" (click)="cancelDelete()">Cancel</button>
+          </div>
+        </form>
+      }
+    </div>
   </div>
 </section>

@@ -66,8 +66,17 @@ export class Auth {
     });
   }
 
-  /** Creates the account only; call login() afterwards to sign the new member in. */
-  async register(name: string, email: string, password: string): Promise<void> {
+  /**
+   * Creates the account only; call login() afterwards to sign the new member in.
+   * `acceptPrivacy` must be true (the server refuses otherwise). `website` is the hidden honeypot
+   * field from the form: people leave it empty, bots fill it in.
+   */
+  async register(
+    name: string,
+    email: string,
+    password: string,
+    options: { acceptPrivacy: boolean; website?: string },
+  ): Promise<void> {
     this.assertEnabled();
     try {
       await firstValueFrom(
@@ -75,11 +84,33 @@ export class Auth {
           name: name.trim(),
           email: email.trim(),
           password,
+          acceptPrivacy: options.acceptPrivacy,
+          website: options.website ?? '',
         }),
       );
     } catch (error) {
       throw new Error(describeError(error));
     }
+  }
+
+  /** Permanently deletes the signed-in member's account (password required), then signs out. */
+  async deleteAccount(password: string): Promise<void> {
+    this.assertEnabled();
+    const token = this.accessToken();
+    if (!token) {
+      throw new Error('Your session has expired. Please log in again.');
+    }
+    try {
+      await firstValueFrom(
+        this.http.request('DELETE', `${IDENTITY_URL}/api/account`, {
+          body: { password },
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      );
+    } catch (error) {
+      throw new Error(describeError(error));
+    }
+    this.logout();
   }
 
   logout(): void {
