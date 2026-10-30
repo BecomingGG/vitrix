@@ -76,6 +76,26 @@
           }
         </label>
 
+        @if (mode() === 'register') {
+          <label class="consent">
+            <input type="checkbox" formControlName="acceptPrivacy" />
+            <span>
+              I agree to the
+              <a routerLink="/privacy" target="_blank">privacy policy</a>
+              (how VITRIX stores my name and email).
+            </span>
+          </label>
+          @if (invalid('acceptPrivacy')) {
+            <span class="error">Please accept the privacy policy to create an account.</span>
+          }
+          <div class="trap" aria-hidden="true">
+            <label>
+              Website
+              <input type="text" formControlName="website" tabindex="-1" autocomplete="off" />
+            </label>
+          </div>
+        }
+
         @if (success()) {
           <p class="form-success" role="status">{{ success() }}</p>
         }

@@ -10,5 +10,5 @@ import { Mark } from '../mark';
 })
 export class SiteFooter {
   readonly nav = FOOTER_NAV;
-  readonly year = 2025;
+  readonly year = new Date().getFullYear();
 }

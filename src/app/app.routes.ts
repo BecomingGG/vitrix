@@ -54,5 +54,10 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./pages/account/account').then((m) => m.Account),
   },
+  {
+    path: 'privacy',
+    data: { title: 'Privacy' },
+    loadComponent: () => import('./pages/privacy/privacy').then((m) => m.Privacy),
+  },
   { path: '**', redirectTo: '' },
 ];
