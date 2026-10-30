@@ -1,0 +1,96 @@
+<section class="page-hero">
+  <div class="wrap">
+    <p class="eyebrow">Student area</p>
+    <h1>{{ mode() === 'login' ? 'Log in' : 'Create account' }}</h1>
+    <p class="lede">Your account keeps your applications and courses in one place.</p>
+  </div>
+</section>
+
+<section class="page-section">
+  <div class="wrap split form-split">
+    <div>
+      <h2>{{ mode() === 'login' ? 'Welcome back' : 'Join VITRIX' }}</h2>
+      <p>
+        Sign in to see the programs you are enrolled in, or create an account before you buy your
+        first course.
+      </p>
+    </div>
+
+    @if (!enabled) {
+      <div class="notice" role="status">
+        <h2>Coming soon</h2>
+        <p>Student accounts are not open on this site yet.</p>
+      </div>
+    } @else {
+      <form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="form-tabs" role="tablist" aria-label="Account">
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="mode() === 'login'"
+            (click)="setMode('login')"
+          >
+            Log in
+          </button>
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="mode() === 'register'"
+            (click)="setMode('register')"
+          >
+            Create account
+          </button>
+        </div>
+
+        @if (mode() === 'register') {
+          <label>
+            Name
+            <input type="text" formControlName="name" autocomplete="name" />
+            @if (invalid('name')) {
+              <span class="error">Enter your name.</span>
+            }
+          </label>
+        }
+        <label>
+          Email
+          <input type="email" formControlName="email" autocomplete="email" />
+          @if (invalid('email')) {
+            <span class="error">Enter a valid email.</span>
+          }
+        </label>
+        <label>
+          Password
+          <input
+            type="password"
+            formControlName="password"
+            [attr.autocomplete]="mode() === 'login' ? 'current-password' : 'new-password'"
+          />
+          @if (invalid('password')) {
+            <span class="error">Use at least 8 characters.</span>
+          }
+          @if (mode() === 'register') {
+            <span class="hint">
+              At least 8 characters, with an uppercase and a lowercase letter, a number and a
+              symbol.
+            </span>
+          }
+        </label>
+
+        @if (success()) {
+          <p class="form-success" role="status">{{ success() }}</p>
+        }
+        @if (failure()) {
+          <p class="error" role="alert">{{ failure() }}</p>
+        }
+
+        <button class="btn btn-red" type="submit" [disabled]="busy()">
+          @if (busy()) {
+            {{ mode() === 'login' ? 'Logging in…' : 'Creating account…' }}
+          } @else {
+            {{ mode() === 'login' ? 'Log in' : 'Create account' }}
+          }
+        </button>
+      </form>
+    }
+  </div>
+</section>

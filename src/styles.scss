@@ -211,6 +211,20 @@ p {
   gap: 12px;
 }
 
+.account-link {
+  color: #d5d5d8;
+  font-size: 14px;
+  max-width: 16ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-link:hover,
+.account-link.is-active {
+  color: #fff;
+}
+
 .icon-btn {
   width: 36px;
   height: 36px;
@@ -927,8 +941,108 @@ p {
   font-size: 13px;
 }
 
+.toast-region {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 50;
+  max-width: min(420px, calc(100% - 32px));
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--muted);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  font-size: 15px;
+}
+
+.toast-success {
+  border-left-color: #2fbf71;
+}
+
+.toast-error {
+  border-left-color: var(--red);
+}
+
+.toast span:first-child {
+  flex: 1;
+}
+
+.toast-close {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.toast-close:hover {
+  color: #fff;
+}
+
+/* Messages under a form (beat the page-level paragraph styles). */
+.form p.error,
+.form p.form-success {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.form p.error {
+  color: var(--red);
+}
+
+.form p.form-success {
+  color: #2fbf71;
+}
+
+.hint {
+  color: var(--dim);
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 13px;
+}
+
 .notice h2 {
   font-size: 36px;
+}
+
+.form-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid var(--line);
+}
+
+.form-tabs button {
+  background: transparent;
+  border: 0;
+  padding: 10px 0;
+  cursor: pointer;
+  color: var(--muted);
+  font-family: var(--display);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.form-tabs button[aria-selected='true'] {
+  color: #fff;
+  box-shadow: inset 0 -2px 0 var(--red);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.account-cta {
+  margin-top: 22px;
+  margin-right: 12px;
 }
 
 @media (max-width: 1100px) {
@@ -954,6 +1068,13 @@ p {
   }
 }
 
+@media (max-width: 640px) {
+  .toast-region {
+    right: 16px;
+    bottom: 16px;
+  }
+}
+
 @media (max-width: 860px) {
   .desktop-nav {
     display: none;
@@ -963,7 +1084,8 @@ p {
     display: grid;
   }
 
-  .header-actions .btn {
+  .header-actions .btn,
+  .header-actions .account-link {
     display: none;
   }
 

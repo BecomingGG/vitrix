@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { COURSES } from '../../site-data';
+import { Auth } from '../../auth';
 
 @Component({
   selector: 'app-apply',
@@ -19,6 +20,18 @@ export class Apply {
     course: ['', Validators.required],
     background: ['', Validators.required],
   });
+
+  constructor() {
+    // Signed in: start from the account's details (they can still be edited).
+    const user = inject(Auth).user();
+    if (user) {
+      this.form.patchValue({
+        email: user.email,
+        // Only a real display name; not the fallback made from the email address.
+        name: user.name === user.email.split('@')[0] ? '' : user.name,
+      });
+    }
+  }
 
   invalid(control: 'name' | 'email' | 'course' | 'background'): boolean {
     const field = this.form.controls[control];

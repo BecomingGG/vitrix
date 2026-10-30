@@ -1,6 +1,7 @@
 import { Component, HostListener, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter } from 'rxjs';
+import { Auth } from '../auth';
 import { COURSES, NAV } from '../site-data';
 import { Mark } from '../mark';
 
@@ -12,6 +13,9 @@ import { Mark } from '../mark';
 })
 export class SiteHeader {
   private readonly router = inject(Router);
+  private readonly auth = inject(Auth);
+  readonly authEnabled = this.auth.enabled;
+  readonly user = this.auth.user;
   readonly nav = NAV;
   readonly menuOpen = signal(false);
   readonly searchOpen = signal(false);

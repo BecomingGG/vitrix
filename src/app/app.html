@@ -4,3 +4,15 @@
   <router-outlet />
 </main>
 <app-site-footer />
+
+<div class="toast-region" role="status" aria-live="polite">
+  @if (notify.note(); as note) {
+    <div class="toast" [class]="'toast toast-' + note.kind">
+      <span>{{ note.text }}</span>
+      <button type="button" class="toast-close" (click)="notify.dismiss()">
+        <span class="sr-only">Dismiss</span>
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
+  }
+</div>
