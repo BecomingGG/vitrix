@@ -4,8 +4,9 @@ VITRIX is a website for an emergency-medicine training institute (Tbilisi, Georg
 Medical students and clinicians browse courses (ACLS, ATLS, PHTLS, BLS, Critical Care,
 Simulation), apply, and — eventually — buy courses and see them in their account.
 
-The site is a **static Angular app** published on **GitHub Pages**. There is **no backend yet**:
-forms and login run entirely in the browser.
+The site is a **static Angular app** published on **GitHub Pages**. Accounts come from the
+separate **identity-api** server (OpenID Connect, repo `BecomingGG/identity-api`), which is not
+deployed yet, so login only works when running locally. Forms have no backend yet.
 
 ## Commands
 
@@ -37,49 +38,51 @@ No test files exist yet (`skipTests: true` in angular.json).
 | --- | --- |
 | [src/app/app.routes.ts](src/app/app.routes.ts) | All routes. `data.title` sets the browser tab title. |
 | [src/app/site-data.ts](src/app/site-data.ts) | All content: nav, courses, faculty, partners, stats. Edit text here. |
-| [src/app/auth.ts](src/app/auth.ts) | `Auth` service (login / register / logout, current user signal) and `authGuard`. |
+| [src/app/auth.ts](src/app/auth.ts) | `Auth` service (login / register / logout, current member signal) and `authGuard`. |
+| [src/app/auth.config.ts](src/app/auth.config.ts) | Identity server URL, client id `vitrix`, and when login is switched on. |
 | [src/app/layout/](src/app/layout/) | Header (nav, search, login link, mobile menu) and footer. |
 | [src/app/mark.ts](src/app/mark.ts) | The VITRIX logo as an SVG component. |
-| `src/app/pages/*` | One folder per page: home, about, courses, simulation, faculty, partners, contact, apply, login, account. |
+| `src/app/pages/*` | One folder per page: home, about, courses, simulation, faculty, partners, contact, apply, login, account, callback. |
 
 ## Login (current state)
 
-- `/login` — one page with two tabs: **Log in** and **Create account**. After success it goes to
-  the `?redirect=` URL or `/account`.
-- `/account` — protected by `authGuard`. Shows name, email, enrolled courses, and Log out.
+Accounts live on **identity-api** (ASP.NET Core Identity + OpenIddict). VITRIX never handles
+passwords: it uses Authorization Code + PKCE via `angular-auth-oidc-client`.
+
+- `/login` — two tabs, **Log in** and **Create account**. "Continue" sends the visitor to the
+  identity server's login or register page (`register()` passes `screen=register`), then back to
+  `?redirect=` or `/account`.
+- `/callback` — where the identity server returns; `Auth.init()` finishes the login and navigates
+  to the saved return URL.
+- `/account` and `/apply` — protected by `authGuard` (not signed in → `/login?redirect=...`).
+  Apply is pre-filled with the member's email. Log out also signs out on the identity server.
 - Header shows "Log in" or the member's name; mobile menu shows "Log in" / "My account".
-- `Member.courses` is a list of course `id`s from `COURSES`. Nothing adds to it yet — that is
-  the job of the future purchase flow.
+- `Member.courses` is a list of course `id`s from `COURSES`. Nothing fills it yet — that is the
+  job of the future purchase flow (an API that validates the identity server's tokens).
 
-**Demo only:** accounts are saved in the visitor's `localStorage` (passwords are salted SHA-256
-hashes, but anyone with the browser can read/change the data). It is not real security and
-accounts don't sync between devices.
+**When login is on:** only when the site runs on `localhost` (identity server at
+`http://localhost:8080`). On GitHub Pages `Auth.enabled` is false: login links are hidden and
+`authGuard` lets everyone through, so the live site works as before. After identity-api is
+deployed, set `PRODUCTION_IDENTITY_URL` in `auth.config.ts` and add the site URL to the `vitrix`
+client's redirect URIs on the server.
 
-### Replacing demo auth with a real provider
+### Running locally with login
 
-Keep the public API of `Auth` the same (`user`, `signedIn`, `register`, `login`, `logout`) so the
-pages and guard don't need changes. Only rewrite the inside of [src/app/auth.ts](src/app/auth.ts).
+1. In `identity-api`: `docker compose up --build` (first time: `.\scripts\generate-dev-certs.ps1`).
+2. Here: `npm start`, open <http://localhost:4200>. Dev admin: `admin@example.com` / `Admin123!`.
 
-Good fits for a static GitHub Pages site (no own server needed):
-
-- **Supabase** — auth + Postgres database. Store enrollments in a `enrollments` table.
-- **Firebase** — Firebase Auth + Firestore.
-
-Steps: create the project, put the public client keys in an Angular environment file, replace
-`register`/`login`/`logout`/`restore` with the provider's SDK calls, and load
-`Member.courses` from the database. Session restore becomes async — set `current` when the
-provider reports the signed-in user.
+Port 4200 is also used by `identity-web` (the test client); run one of them at a time.
 
 ## Roadmap / not done yet
 
-1. Real auth provider (see above).
+1. Deploy identity-api (e.g. Render + Neon) and switch login on for the published site.
 2. Course purchase: a "Buy" button on each course → payment (e.g. Stripe Checkout or a Georgian
    bank gateway such as TBC / Bank of Georgia) → webhook writes the enrollment. Payments need a
    server-side piece (provider function / edge function); never trust the browser to mark a
    course as paid.
 3. Course content for enrolled students (lessons, materials, schedules) under `/account`.
 4. Connect Apply and Contact forms to a real inbox (they currently only show a confirmation).
-5. Password reset and email verification (come with the real provider).
+5. Password reset and email verification (identity-api needs an email sender).
 6. Footer year is hard-coded in [src/app/layout/site-footer.ts](src/app/layout/site-footer.ts).
 
 Update this file when you finish a roadmap item or change how something works.

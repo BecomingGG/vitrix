@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 
-/** Landing page for the identity server redirect; AuthService.init() finishes the login and moves on. */
+/** Landing page for the identity server redirect; Auth.init() finishes the login and moves on. */
 @Component({
   selector: 'app-callback',
   template: `

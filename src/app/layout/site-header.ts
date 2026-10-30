@@ -13,7 +13,9 @@ import { Mark } from '../mark';
 })
 export class SiteHeader {
   private readonly router = inject(Router);
-  readonly user = inject(Auth).user;
+  private readonly auth = inject(Auth);
+  readonly authEnabled = this.auth.enabled;
+  readonly user = this.auth.user;
   readonly nav = NAV;
   readonly menuOpen = signal(false);
   readonly searchOpen = signal(false);

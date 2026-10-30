@@ -1,5 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { Auth } from '../../auth';
 import { COURSES } from '../../site-data';
 
@@ -10,7 +10,6 @@ import { COURSES } from '../../site-data';
 })
 export class Account {
   private readonly auth = inject(Auth);
-  private readonly router = inject(Router);
   readonly user = this.auth.user;
 
   readonly enrolled = computed(() => {
@@ -18,8 +17,8 @@ export class Account {
     return COURSES.filter((course) => ids.includes(course.id));
   });
 
+  /** Signs out on the identity server too; it sends the visitor back to the home page. */
   logout(): void {
     this.auth.logout();
-    this.router.navigateByUrl('/');
   }
 }

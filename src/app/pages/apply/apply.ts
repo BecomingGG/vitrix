@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { COURSES } from '../../site-data';
-import { AuthService } from '../../auth/auth.service';
+import { Auth } from '../../auth';
 
 @Component({
   selector: 'app-apply',
@@ -23,7 +23,7 @@ export class Apply {
 
   constructor() {
     // Signed in: start from the account's details (they can still be edited).
-    const user = inject(AuthService).user();
+    const user = inject(Auth).user();
     if (user) {
       this.form.patchValue({
         email: user.email,

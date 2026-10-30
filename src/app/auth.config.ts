@@ -1,12 +1,13 @@
 import { LogLevel, PassedInitialConfig } from 'angular-auth-oidc-client';
 
 /**
- * Sign-in runs against the identity-api server (OpenID Connect).
+ * Accounts live on the identity-api server (OpenID Connect). VITRIX never sees passwords:
+ * "Log in" / "Create account" send the visitor to the identity server and back.
  *
  * The identity server only runs locally for now, so sign-in is switched on only when the site
- * itself runs on localhost. On the published site (GitHub Pages) everything behaves as before.
- * When identity-api is deployed, set PRODUCTION_IDENTITY_URL and register the site's URL as a
- * redirect URI for the "vitrix" client.
+ * itself runs on localhost. On the published site (GitHub Pages) the login links are hidden and
+ * every page stays open, exactly as before. When identity-api is deployed, set
+ * PRODUCTION_IDENTITY_URL and register the site's URL as a redirect URI for the "vitrix" client.
  */
 const LOCAL_IDENTITY_URL = 'http://localhost:8080';
 const PRODUCTION_IDENTITY_URL = ''; // e.g. 'https://auth.vitrix.ge'

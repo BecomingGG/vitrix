@@ -2,7 +2,7 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { provideAuth } from 'angular-auth-oidc-client';
-import { authConfig } from './auth/auth.config';
+import { authConfig } from './auth.config';
 
 import { routes } from './app.routes';
 

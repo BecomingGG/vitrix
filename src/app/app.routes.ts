@@ -40,6 +40,7 @@ export const routes: Routes = [
   {
     path: 'apply',
     data: { title: 'Apply' },
+    canActivate: [authGuard],
     loadComponent: () => import('./pages/apply/apply').then((m) => m.Apply),
   },
   {
@@ -52,6 +53,11 @@ export const routes: Routes = [
     data: { title: 'My account' },
     canActivate: [authGuard],
     loadComponent: () => import('./pages/account/account').then((m) => m.Account),
+  },
+  {
+    path: 'callback',
+    data: { title: 'Signing in' },
+    loadComponent: () => import('./pages/callback/callback').then((m) => m.Callback),
   },
   { path: '**', redirectTo: '' },
 ];

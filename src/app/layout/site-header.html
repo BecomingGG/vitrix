@@ -30,12 +30,14 @@
         <path d="M16 16.5 20.5 21" />
       </svg>
     </button>
-    @if (user(); as member) {
-      <a class="account-link" routerLink="/account" routerLinkActive="is-active">
-        {{ member.name }}
-      </a>
-    } @else {
-      <a class="account-link" routerLink="/login" routerLinkActive="is-active">Log in</a>
+    @if (authEnabled) {
+      @if (user(); as member) {
+        <a class="account-link" routerLink="/account" routerLinkActive="is-active">
+          {{ member.name }}
+        </a>
+      } @else {
+        <a class="account-link" routerLink="/login" routerLinkActive="is-active">Log in</a>
+      }
     }
     <a class="btn btn-red" routerLink="/apply">Apply now</a>
     <button
@@ -91,10 +93,12 @@
         {{ item.label }}
       </a>
     }
-    @if (user()) {
-      <a routerLink="/account" routerLinkActive="is-active">My account</a>
-    } @else {
-      <a routerLink="/login" routerLinkActive="is-active">Log in</a>
+    @if (authEnabled) {
+      @if (user()) {
+        <a routerLink="/account" routerLinkActive="is-active">My account</a>
+      } @else {
+        <a routerLink="/login" routerLinkActive="is-active">Log in</a>
+      }
     }
     <a class="btn btn-red" routerLink="/apply">Apply now</a>
   </nav>
