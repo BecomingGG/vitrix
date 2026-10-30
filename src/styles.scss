@@ -941,6 +941,67 @@ p {
   font-size: 13px;
 }
 
+.toast-region {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 50;
+  max-width: min(420px, calc(100% - 32px));
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--muted);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  font-size: 15px;
+}
+
+.toast-success {
+  border-left-color: #2fbf71;
+}
+
+.toast-error {
+  border-left-color: var(--red);
+}
+
+.toast span:first-child {
+  flex: 1;
+}
+
+.toast-close {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.toast-close:hover {
+  color: #fff;
+}
+
+/* Messages under a form (beat the page-level paragraph styles). */
+.form p.error,
+.form p.form-success {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.form p.error {
+  color: var(--red);
+}
+
+.form p.form-success {
+  color: #2fbf71;
+}
+
 .hint {
   color: var(--dim);
   letter-spacing: 0;
@@ -1004,6 +1065,13 @@ p {
 
   .card-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .toast-region {
+    right: 16px;
+    bottom: 16px;
   }
 }
 

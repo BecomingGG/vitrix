@@ -66,6 +66,7 @@ export class Auth {
     });
   }
 
+  /** Creates the account only; call login() afterwards to sign the new member in. */
   async register(name: string, email: string, password: string): Promise<void> {
     this.assertEnabled();
     try {
@@ -79,7 +80,6 @@ export class Auth {
     } catch (error) {
       throw new Error(describeError(error));
     }
-    await this.login(email, password);
   }
 
   logout(): void {
@@ -173,9 +173,13 @@ export const authGuard: CanActivateFn = (_route, state) => {
   if (!auth.enabled) {
     return true; // published site: no accounts yet, keep pages open
   }
+  // Wait for the saved session to be restored on first load, then check the live state
+  // (the member may have logged in since the site loaded).
   return auth.ready$.pipe(
-    map((signedIn) =>
-      signedIn ? true : router.createUrlTree(['/login'], { queryParams: { redirect: state.url } }),
+    map(() =>
+      auth.signedIn()
+        ? true
+        : router.createUrlTree(['/login'], { queryParams: { redirect: state.url } }),
     ),
   );
 };

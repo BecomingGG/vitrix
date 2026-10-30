@@ -1,6 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { Auth } from '../../auth';
+import { Notify } from '../../notify';
 import { COURSES } from '../../site-data';
 
 @Component({
@@ -11,6 +12,7 @@ import { COURSES } from '../../site-data';
 export class Account {
   private readonly auth = inject(Auth);
   private readonly router = inject(Router);
+  private readonly notify = inject(Notify);
   readonly user = this.auth.user;
 
   readonly enrolled = computed(() => {
@@ -20,6 +22,7 @@ export class Account {
 
   logout(): void {
     this.auth.logout();
+    this.notify.info('You have been logged out.');
     this.router.navigateByUrl('/');
   }
 }

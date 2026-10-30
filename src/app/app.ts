@@ -6,6 +6,7 @@ import { filter } from 'rxjs';
 import { SiteFooter } from './layout/site-footer';
 import { SiteHeader } from './layout/site-header';
 import { Auth } from './auth';
+import { Notify } from './notify';
 
 @Component({
   selector: 'app-root',
@@ -14,6 +15,8 @@ import { Auth } from './auth';
   styleUrl: './app.scss',
 })
 export class App {
+  readonly notify = inject(Notify);
+
   constructor() {
     const router = inject(Router);
     const title = inject(Title);

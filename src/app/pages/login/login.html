@@ -76,12 +76,19 @@
           }
         </label>
 
+        @if (success()) {
+          <p class="form-success" role="status">{{ success() }}</p>
+        }
         @if (failure()) {
           <p class="error" role="alert">{{ failure() }}</p>
         }
 
         <button class="btn btn-red" type="submit" [disabled]="busy()">
-          {{ mode() === 'login' ? 'Log in' : 'Create account' }}
+          @if (busy()) {
+            {{ mode() === 'login' ? 'Logging in…' : 'Creating account…' }}
+          } @else {
+            {{ mode() === 'login' ? 'Log in' : 'Create account' }}
+          }
         </button>
       </form>
     }
