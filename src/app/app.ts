@@ -19,7 +19,7 @@ export class App {
     const title = inject(Title);
     const destroyRef = inject(DestroyRef);
 
-    // Restore the signed-in session, or finish a login coming back from the identity server.
+    // Restore a saved session (refreshing the token if needed).
     inject(Auth).init();
 
     router.events

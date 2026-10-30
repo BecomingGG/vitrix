@@ -54,10 +54,5 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./pages/account/account').then((m) => m.Account),
   },
-  {
-    path: 'callback',
-    data: { title: 'Signing in' },
-    loadComponent: () => import('./pages/callback/callback').then((m) => m.Callback),
-  },
   { path: '**', redirectTo: '' },
 ];

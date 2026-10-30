@@ -39,32 +39,41 @@ No test files exist yet (`skipTests: true` in angular.json).
 | [src/app/app.routes.ts](src/app/app.routes.ts) | All routes. `data.title` sets the browser tab title. |
 | [src/app/site-data.ts](src/app/site-data.ts) | All content: nav, courses, faculty, partners, stats. Edit text here. |
 | [src/app/auth.ts](src/app/auth.ts) | `Auth` service (login / register / logout, current member signal) and `authGuard`. |
-| [src/app/auth.config.ts](src/app/auth.config.ts) | Identity server URL, client id `vitrix`, and when login is switched on. |
+| [src/app/auth.config.ts](src/app/auth.config.ts) | Identity server URL, client id `vitrix`, scopes, and when login is switched on. |
 | [src/app/layout/](src/app/layout/) | Header (nav, search, login link, mobile menu) and footer. |
 | [src/app/mark.ts](src/app/mark.ts) | The VITRIX logo as an SVG component. |
-| `src/app/pages/*` | One folder per page: home, about, courses, simulation, faculty, partners, contact, apply, login, account, callback. |
+| `src/app/pages/*` | One folder per page: home, about, courses, simulation, faculty, partners, contact, apply, login, account. |
 
 ## Login (current state)
 
-Accounts live on **identity-api** (ASP.NET Core Identity + OpenIddict). VITRIX never handles
-passwords: it uses Authorization Code + PKCE via `angular-auth-oidc-client`.
+Accounts live on **identity-api** (ASP.NET Core Identity + OpenIddict, one instance per project).
+VITRIX shows its **own login form** — visitors never leave the site:
 
-- `/login` — two tabs, **Log in** and **Create account**. "Continue" sends the visitor to the
-  identity server's login or register page (`register()` passes `screen=register`), then back to
-  `?redirect=` or `/account`.
-- `/callback` — where the identity server returns; `Auth.init()` finishes the login and navigates
-  to the saved return URL.
+- Log in: `POST {IDENTITY_URL}/connect/token` with `grant_type=password` (client `vitrix`).
+- Create account: `POST {IDENTITY_URL}/api/account/register` (`name`, `email`, `password`),
+  then the same login call.
+- The server returns a 30-minute access token (a JWT — `Auth` reads the member from it) and a
+  refresh token. Both are kept in `localStorage` (`vitrix.session`); the access token is
+  refreshed a minute before it expires, so members stay signed in across visits.
+- Server rules: passwords need 8+ characters with upper and lower case, a number and a symbol;
+  5 wrong passwords lock the account for 15 minutes. Error texts come from the server.
+
+Pages:
+
+- `/login` — two tabs, **Log in** and **Create account**. After success it goes to the
+  `?redirect=` URL or `/account`.
 - `/account` and `/apply` — protected by `authGuard` (not signed in → `/login?redirect=...`).
-  Apply is pre-filled with the member's email. Log out also signs out on the identity server.
+  Apply is pre-filled with the member's name and email.
 - Header shows "Log in" or the member's name; mobile menu shows "Log in" / "My account".
+- `Auth.accessToken()` gives the Bearer token for calling VITRIX APIs later.
 - `Member.courses` is a list of course `id`s from `COURSES`. Nothing fills it yet — that is the
   job of the future purchase flow (an API that validates the identity server's tokens).
 
 **When login is on:** only when the site runs on `localhost` (identity server at
 `http://localhost:8080`). On GitHub Pages `Auth.enabled` is false: login links are hidden and
 `authGuard` lets everyone through, so the live site works as before. After identity-api is
-deployed, set `PRODUCTION_IDENTITY_URL` in `auth.config.ts` and add the site URL to the `vitrix`
-client's redirect URIs on the server.
+deployed, set `PRODUCTION_IDENTITY_URL` in `auth.config.ts` and add the site's origin to the
+server's CORS allowed origins.
 
 ### Running locally with login
 

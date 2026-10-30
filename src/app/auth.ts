@@ -1,8 +1,8 @@
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { Observable, catchError, map, of, shareReplay } from 'rxjs';
-import { AUTH_ENABLED } from './auth.config';
+import { Observable, firstValueFrom, from, map, of, shareReplay } from 'rxjs';
+import { AUTH_ENABLED, CLIENT_ID, IDENTITY_URL, SCOPE } from './auth.config';
 
 export interface Member {
   id: string;
@@ -13,87 +13,156 @@ export interface Member {
   courses: string[];
 }
 
-const RETURN_URL_KEY = 'vitrix.returnUrl';
+interface Tokens {
+  accessToken: string;
+  refreshToken: string | null;
+  /** Epoch milliseconds when the access token expires. */
+  expiresAt: number;
+}
+
+interface TokenResponse {
+  access_token: string;
+  refresh_token?: string;
+  expires_in: number;
+}
+
+const TOKENS_KEY = 'vitrix.session';
 
 /**
  * Current member + login / register / logout, backed by the identity-api server.
- * Pages and the guard only use this public API, not the OIDC library directly.
+ * The login form posts the email and password straight to the server (OAuth password grant);
+ * the server returns a short-lived access token (30 min) and a refresh token that keeps the member
+ * signed in. Pages and the guard only use this public API.
  */
 @Injectable({ providedIn: 'root' })
 export class Auth {
-  private readonly oidc = inject(OidcSecurityService);
-  private readonly router = inject(Router);
+  private readonly http = inject(HttpClient);
   private readonly current = signal<Member | null>(null);
+  private tokens: Tokens | null = null;
+  private refreshTimer: ReturnType<typeof setTimeout> | undefined;
 
   /** False on the published site until the identity server is deployed (see auth.config.ts). */
   readonly enabled = AUTH_ENABLED;
   readonly user = this.current.asReadonly();
   readonly signedIn = computed(() => this.current() !== null);
 
-  /**
-   * Restores the session from storage, or finishes a login coming back to /callback?code=...
-   * Shared, so the app shell and the guard wait for the same result.
-   */
+  /** Restores a saved session (refreshing it if needed). Shared by the app shell and the guard. */
   readonly ready$: Observable<boolean> = AUTH_ENABLED
-    ? this.oidc.checkAuth().pipe(
-        map(({ isAuthenticated, userData }) => {
-          this.current.set(isAuthenticated ? toMember(userData) : null);
-          return isAuthenticated;
-        }),
-        // Identity server down or unreachable: carry on signed out instead of breaking the site.
-        catchError((error: unknown) => {
-          console.warn('VITRIX: identity server not reachable, continuing signed out.', error);
-          this.current.set(null);
-          return of(false);
-        }),
-        shareReplay(1),
-      )
+    ? from(this.restore()).pipe(shareReplay(1))
     : of(false);
-
-  constructor() {
-    if (AUTH_ENABLED) {
-      // Stay in sync after token refreshes and logouts.
-      this.oidc.userData$.subscribe(({ userData }) =>
-        this.current.set(userData ? toMember(userData) : null),
-      );
-    }
-  }
 
   /** Called once on startup by the app shell. */
   init(): void {
-    this.ready$.subscribe((signedIn) => {
-      if (window.location.pathname.startsWith('/callback')) {
-        const returnUrl = sessionStorage.getItem(RETURN_URL_KEY) || '/account';
-        sessionStorage.removeItem(RETURN_URL_KEY);
-        this.router.navigateByUrl(signedIn ? returnUrl : '/login', { replaceUrl: true });
-      }
+    this.ready$.subscribe();
+  }
+
+  async login(email: string, password: string): Promise<void> {
+    this.assertEnabled();
+    await this.requestTokens({
+      grant_type: 'password',
+      username: email.trim(),
+      password,
+      scope: SCOPE,
     });
   }
 
-  /** Opens the identity server's login page; comes back to `redirect` afterwards. */
-  login(redirect = '/account'): void {
-    this.go(redirect);
-  }
-
-  /** Opens the identity server's "create account" page; comes back to `redirect` afterwards. */
-  register(redirect = '/account'): void {
-    this.go(redirect, { screen: 'register' });
-  }
-
-  /** Signs out on the identity server too, then returns to the home page. */
-  logout(): void {
-    if (AUTH_ENABLED) {
-      this.oidc.logoff().subscribe();
+  async register(name: string, email: string, password: string): Promise<void> {
+    this.assertEnabled();
+    try {
+      await firstValueFrom(
+        this.http.post(`${IDENTITY_URL}/api/account/register`, {
+          name: name.trim(),
+          email: email.trim(),
+          password,
+        }),
+      );
+    } catch (error) {
+      throw new Error(describeError(error));
     }
+    await this.login(email, password);
   }
 
-  private go(redirect: string, customParams?: Record<string, string>): void {
-    if (!AUTH_ENABLED) {
+  logout(): void {
+    clearTimeout(this.refreshTimer);
+    this.tokens = null;
+    write(null);
+    this.current.set(null);
+  }
+
+  /** For calling VITRIX APIs later: `Authorization: Bearer <token>`. */
+  accessToken(): string | null {
+    return this.tokens && this.tokens.expiresAt > Date.now() ? this.tokens.accessToken : null;
+  }
+
+  // ------------------------------------------------------------------------------------------
+
+  private async restore(): Promise<boolean> {
+    const saved = read();
+    if (!saved) {
+      return false;
+    }
+    if (saved.expiresAt > Date.now() + 30_000) {
+      this.start(saved);
+      return true;
+    }
+    if (saved.refreshToken) {
+      try {
+        await this.refresh(saved.refreshToken);
+        return true;
+      } catch (error) {
+        console.warn('VITRIX: could not restore the session.', error);
+      }
+    }
+    this.logout();
+    return false;
+  }
+
+  private refresh(refreshToken: string): Promise<void> {
+    return this.requestTokens({ grant_type: 'refresh_token', refresh_token: refreshToken });
+  }
+
+  private async requestTokens(params: Record<string, string>): Promise<void> {
+    const body = new HttpParams({ fromObject: { client_id: CLIENT_ID, ...params } });
+    let response: TokenResponse;
+    try {
+      response = await firstValueFrom(
+        this.http.post<TokenResponse>(`${IDENTITY_URL}/connect/token`, body),
+      );
+    } catch (error) {
+      throw new Error(describeError(error));
+    }
+    this.start({
+      accessToken: response.access_token,
+      refreshToken: response.refresh_token ?? params['refresh_token'] ?? null,
+      expiresAt: Date.now() + response.expires_in * 1000,
+    });
+  }
+
+  private start(tokens: Tokens): void {
+    const member = toMember(tokens.accessToken);
+    if (!member) {
+      this.logout();
       return;
     }
-    const safe = redirect.startsWith('/') && !redirect.startsWith('/callback') ? redirect : '/';
-    sessionStorage.setItem(RETURN_URL_KEY, safe);
-    this.oidc.authorize(undefined, customParams ? { customParams } : undefined);
+    this.tokens = tokens;
+    write(tokens);
+    this.current.set(member);
+
+    // Get a fresh access token a minute before this one expires.
+    clearTimeout(this.refreshTimer);
+    if (tokens.refreshToken) {
+      const refreshToken = tokens.refreshToken;
+      const delay = Math.max(tokens.expiresAt - Date.now() - 60_000, 5_000);
+      this.refreshTimer = setTimeout(() => {
+        this.refresh(refreshToken).catch(() => this.logout());
+      }, delay);
+    }
+  }
+
+  private assertEnabled(): void {
+    if (!AUTH_ENABLED) {
+      throw new Error('Student accounts are not open on this site yet.');
+    }
   }
 }
 
@@ -111,19 +180,72 @@ export const authGuard: CanActivateFn = (_route, state) => {
   );
 };
 
-function toMember(data: Record<string, unknown> | null | undefined): Member | null {
-  if (!data) {
+// ---------------------------------------------------------------------------------------------
+
+function read(): Tokens | null {
+  try {
+    const raw = localStorage.getItem(TOKENS_KEY);
+    return raw ? (JSON.parse(raw) as Tokens) : null;
+  } catch {
     return null;
   }
-  const email = String(data['email'] ?? '');
-  const rawName = String(data['name'] ?? data['preferred_username'] ?? '');
-  const roles = data['role'];
-  return {
-    id: String(data['sub'] ?? ''),
-    email,
-    // The identity server uses the email as user name until profiles get a real name.
-    name: rawName && !rawName.includes('@') ? rawName : email.split('@')[0] || 'Member',
-    roles: Array.isArray(roles) ? roles.map(String) : roles ? [String(roles)] : [],
-    courses: [],
-  };
+}
+
+function write(tokens: Tokens | null): void {
+  try {
+    if (tokens) {
+      localStorage.setItem(TOKENS_KEY, JSON.stringify(tokens));
+    } else {
+      localStorage.removeItem(TOKENS_KEY);
+    }
+  } catch {
+    // Storage blocked (private mode); the session just won't survive a reload.
+  }
+}
+
+/** Reads the member from the access token (a signed JWT issued by identity-api). */
+function toMember(accessToken: string): Member | null {
+  try {
+    const payload = accessToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const bytes = Uint8Array.from(atob(payload), (c) => c.charCodeAt(0));
+    const claims = JSON.parse(new TextDecoder().decode(bytes)) as Record<string, unknown>;
+    const email = String(claims['email'] ?? '');
+    const rawName = String(claims['name'] ?? '');
+    const roles = claims['role'];
+    return {
+      id: String(claims['sub'] ?? ''),
+      email,
+      // Accounts made without a name use the email as name; show the part before "@" instead.
+      name: rawName && !rawName.includes('@') ? rawName : email.split('@')[0] || 'Member',
+      roles: Array.isArray(roles) ? roles.map(String) : roles ? [String(roles)] : [],
+      courses: [],
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Turns server responses into a sentence the login form can show. */
+function describeError(error: unknown): string {
+  if (!(error instanceof HttpErrorResponse)) {
+    return 'Something went wrong. Please try again.';
+  }
+  if (error.status === 0) {
+    return 'The account server is not reachable. Please try again later.';
+  }
+  if (error.status === 429) {
+    return 'Too many attempts. Please wait a minute and try again.';
+  }
+  const body = error.error as
+    { error_description?: string; errors?: string[] | Record<string, string[]> } | null | undefined;
+  if (body?.error_description) {
+    return body.error_description;
+  }
+  if (Array.isArray(body?.errors)) {
+    return body.errors.join(' ');
+  }
+  if (body?.errors && typeof body.errors === 'object') {
+    return Object.values(body.errors).flat().join(' ');
+  }
+  return 'Something went wrong. Please try again.';
 }
