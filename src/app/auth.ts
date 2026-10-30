@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { Observable, map, of, shareReplay } from 'rxjs';
+import { Observable, catchError, map, of, shareReplay } from 'rxjs';
 import { AUTH_ENABLED } from './auth.config';
 
 export interface Member {
@@ -39,6 +39,12 @@ export class Auth {
         map(({ isAuthenticated, userData }) => {
           this.current.set(isAuthenticated ? toMember(userData) : null);
           return isAuthenticated;
+        }),
+        // Identity server down or unreachable: carry on signed out instead of breaking the site.
+        catchError((error: unknown) => {
+          console.warn('VITRIX: identity server not reachable, continuing signed out.', error);
+          this.current.set(null);
+          return of(false);
         }),
         shareReplay(1),
       )
