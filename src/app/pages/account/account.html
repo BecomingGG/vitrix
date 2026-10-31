@@ -8,25 +8,76 @@
 
 <section class="page-section">
   <div class="wrap">
+    @if (staff()) {
+      <a class="btn btn-red account-cta" routerLink="/admin">Open the admin panel</a>
+    }
+
     <h2>My courses</h2>
-    @if (enrolled().length) {
-      <div class="course-list">
-        @for (course of enrolled(); track course.id) {
-          <article class="course-row">
-            <img [src]="course.image" [alt]="course.code + ' scenario'" />
+    @if (loadingCourses()) {
+      <p class="lesson-meta">Loading your courses…</p>
+    } @else if (myCourses().length) {
+      <div class="my-courses">
+        @for (mc of myCourses(); track mc.course.id) {
+          <a class="my-course" [routerLink]="['/courses', mc.course.slug]">
+            <img [src]="mc.course.imageUrl" alt="" />
             <div>
-              <p class="eyebrow">{{ course.code }}</p>
-              <h2>{{ course.name }}</h2>
-              <p>{{ course.summary }}</p>
+              <p class="eyebrow">{{ mc.course.code }}</p>
+              <h3>{{ mc.course.title | tr }}</h3>
+              <div class="progress"><span [style.width.%]="percent(mc)"></span></div>
+              <p class="lesson-meta">
+                {{ mc.lessonsCompleted }}/{{ mc.lessonsTotal }} lessons
+                @if (mc.quizzesTotal) {
+                  · {{ mc.quizzesPassed }}/{{ mc.quizzesTotal }} tests passed
+                }
+              </p>
             </div>
-          </article>
+            <span class="go" aria-hidden="true">→</span>
+          </a>
         }
       </div>
     } @else {
-      <p>You are not enrolled in a course yet. Course purchase is coming soon.</p>
-      <a class="btn btn-ghost account-cta" routerLink="/courses">
-        Browse courses <span aria-hidden="true">→</span>
-      </a>
+      <p>
+        You are not enrolled in a course yet. Apply for a program and our team will add you; it then
+        appears here with your lessons and tests.
+      </p>
+      <div class="form-actions">
+        <a class="btn btn-ghost" routerLink="/courses"
+          >Browse courses <span aria-hidden="true">→</span></a
+        >
+        <a class="btn btn-ghost" routerLink="/apply">Apply</a>
+      </div>
+    }
+
+    @if (results().length) {
+      <h2 class="block-title">My test results</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Test</th>
+              <th>Course</th>
+              <th>Date</th>
+              <th>Score</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of results(); track r.id) {
+              <tr>
+                <td>{{ r.quizTitle | tr }}</td>
+                <td>{{ r.courseTitle | tr }}</td>
+                <td>{{ r.submittedAt | date: 'd MMM y, HH:mm' }}</td>
+                <td>{{ r.scorePercent }}%</td>
+                <td>
+                  <span class="tag" [class.tag-ok]="r.passed">{{
+                    r.passed ? 'Passed' : 'Not passed'
+                  }}</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     }
 
     <button type="button" class="btn btn-ghost account-cta" (click)="logout()">Log out</button>

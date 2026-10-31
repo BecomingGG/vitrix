@@ -11,14 +11,19 @@
 
 <section class="page-section">
   <div class="wrap course-list">
-    @for (course of courses; track course.id) {
-      <article class="course-row" [id]="course.id">
-        <img [src]="course.image" [alt]="course.code + ' scenario'" />
+    @for (course of courses(); track course.id) {
+      <article class="course-row" [id]="course.slug">
+        <img [src]="course.imageUrl" [alt]="course.code + ' scenario'" />
         <div>
           <p class="eyebrow">{{ course.code }}</p>
-          <h2>{{ course.name }}</h2>
-          <p>{{ course.detail }}</p>
-          <a class="btn btn-ghost" routerLink="/apply">Apply now <span aria-hidden="true">→</span></a>
+          <h2>{{ course.title | tr }}</h2>
+          <p>{{ (course.description | tr) || (course.summary | tr) }}</p>
+          <div class="form-actions">
+            <a class="btn btn-ghost" [routerLink]="['/courses', course.slug]">
+              Course details <span aria-hidden="true">→</span>
+            </a>
+            <a class="btn btn-ghost" routerLink="/apply">Apply now</a>
+          </div>
         </div>
       </article>
     }

@@ -7,7 +7,9 @@ Simulation), apply, and — eventually — buy courses and see them in their acc
 The site is a **static Angular app** published on **GitHub Pages**
 (<https://becominggg.github.io/vitrix/>, from the `gh-pages` branch). Accounts come from the
 separate **identity-api** server (repo `BecomingGG/identity-api`), deployed on Render at
-<https://vitrix-identity.onrender.com> with a Neon Postgres database. Forms have no backend yet.
+<https://vitrix-identity.onrender.com> with a Neon Postgres database. Courses, lessons, Q&A,
+tests and student progress come from **vitrix-api** (repo `BecomingGG/vitrix-api`, same
+database, schema `vitrix`). Apply/Contact forms have no backend yet.
 
 ## Commands
 
@@ -42,10 +44,12 @@ No test files exist yet (`skipTests: true` in angular.json).
 | [src/app/auth.ts](src/app/auth.ts) | `Auth` service (login / register / logout, current member signal) and `authGuard`. |
 | [src/app/auth.config.ts](src/app/auth.config.ts) | Identity server URL, client id `vitrix`, scopes, and when login is switched on. |
 | [src/app/pages/privacy/](src/app/pages/privacy/) | Privacy policy page (`/privacy`, linked in the footer and on sign-up). Contact email: `PRIVACY_CONTACT_EMAIL` in `site-data.ts`. |
+| [src/app/content/](src/app/content/) | Courses/tests data layer: `content.models.ts` (the API contract), `content.api.ts` (all vitrix-api calls), `content.config.ts` (API URL), `catalog.ts` (course list with built-in fallback), `roles.ts` (admin/editor + `roleGuard`), `i18n.ts` (`LText` EN/KA + `tr` pipe), `youtube.ts`. |
+| [src/app/pages/admin/](src/app/pages/admin/) | Admin panel `/admin`: courses, lessons, tests/questions, Q&A (admin + editor); students, results and team roles (admin only; team calls identity-api `/api/admin/users`). |
 | [src/app/notify.ts](src/app/notify.ts) | `Notify` service: short toast messages (`success`, `info`, `error`), shown by the app shell. |
 | [src/app/layout/](src/app/layout/) | Header (nav, search, login link, mobile menu) and footer. |
 | [src/app/mark.ts](src/app/mark.ts) | The VITRIX logo as an SVG component. |
-| `src/app/pages/*` | One folder per page: home, about, courses, simulation, faculty, partners, contact, apply, login, account, privacy. |
+| `src/app/pages/*` | One folder per page: home, about, courses, simulation, faculty, partners, contact, apply, login, account, privacy, course (`/courses/:slug`), quiz (`/tests/:id`), faq. |
 
 ## Login (current state)
 
@@ -111,17 +115,40 @@ cp dist/vitrix/browser/index.html dist/vitrix/browser/404.html
 
 Port 4200 is also used by `identity-web` (the test client); run one of them at a time.
 
+## Courses, tests and admin (vitrix-api)
+
+- **Content is bilingual:** every visitor-facing text is an `LText` `{ en, ka }`. Show it with the
+  `tr` pipe (`{{ course.title | tr }}`), which uses the current `lang` signal (English for now)
+  and falls back to the other language. Admin forms use `<app-ltext-field>` (EN | KA side by side).
+- **Roles** (from the identity token): `admin` = everything; `editor` = courses, lessons, Q&A,
+  tests. Students and results are admin-only. The API enforces this; `/admin` routes use `roleGuard`.
+- **Public:** `/courses` (published courses), `/courses/:slug` (overview, lesson titles, Q&A),
+  `/faq` (general Q&A).
+- **Students:** enrolled members see lessons with the YouTube video (`youtube-nocookie.com`
+  embed), mark lessons completed, and take tests at `/tests/:id`. Starting a test creates an
+  attempt on the server (attempt limit, timer); scoring happens on the server and correct answers
+  are never sent before submitting. My account shows course progress and test results.
+- **Enrollment** is by email (admin → Students), so it works before the person has an account.
+- **Team** (admin → Team) gives people the `editor`/`admin` role on identity-api; it applies at their next login.
+- **Deleting an account** also calls `DELETE /api/me` on vitrix-api (progress, results, enrollments).
+- **Videos:** YouTube, uploaded as *Unlisted*; only the 11-character id is stored and validated.
+- **Fallback:** `CONTENT_API_URL` in `content/content.config.ts` is `''` on the published site
+  until vitrix-api is deployed; then the Courses page uses the built-in list in `site-data.ts`,
+  and lessons/tests/admin are hidden. Locally vitrix-api runs on `http://localhost:8082`.
+
 ## Roadmap / not done yet
 
 1. ~~Deploy identity-api~~ done (Render + Neon). Consider Render's paid plan so it never sleeps.
-2. Course purchase: a "Buy" button on each course → payment (e.g. Stripe Checkout or a Georgian
+2. Deploy vitrix-api and set `PRODUCTION_CONTENT_URL`; assign the editor role to content staff.
+3. Course purchase: a "Buy" button on each course → payment (e.g. Stripe Checkout or a Georgian
    bank gateway such as TBC / Bank of Georgia) → webhook writes the enrollment. Payments need a
    server-side piece (provider function / edge function); never trust the browser to mark a
    course as paid.
-3. Course content for enrolled students (lessons, materials, schedules) under `/account`.
-4. Connect Apply and Contact forms to a real inbox (they currently only show a confirmation).
-5. Password reset and email verification (identity-api needs an email sender).
-6. Set `PRIVACY_CONTACT_EMAIL` in `site-data.ts` to a real, monitored address.
-7. Self-host the Google Fonts (privacy: Google currently receives visitors' IP addresses).
+4. Language switch in the header (sets `lang` to `ka`), certificates (PDF) after passing a test,
+   and removing a student's progress/results in vitrix-api when they delete their account.
+5. Connect Apply and Contact forms to a real inbox (they currently only show a confirmation).
+6. Password reset and email verification (identity-api needs an email sender).
+7. Set `PRIVACY_CONTACT_EMAIL` in `site-data.ts` to a real, monitored address.
+8. Self-host the Google Fonts (privacy: Google currently receives visitors' IP addresses).
 
 Update this file when you finish a roadmap item or change how something works.

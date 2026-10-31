@@ -2,6 +2,8 @@ import { Component, HostListener, computed, inject, signal } from '@angular/core
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter } from 'rxjs';
 import { Auth } from '../auth';
+import { isStaff } from '../content/roles';
+import { CONTENT_ENABLED } from '../content/content.config';
 import { COURSES, NAV } from '../site-data';
 import { Mark } from '../mark';
 
@@ -16,6 +18,7 @@ export class SiteHeader {
   private readonly auth = inject(Auth);
   readonly authEnabled = this.auth.enabled;
   readonly user = this.auth.user;
+  readonly staff = computed(() => CONTENT_ENABLED && isStaff(this.auth.user()));
   readonly nav = NAV;
   readonly menuOpen = signal(false);
   readonly searchOpen = signal(false);

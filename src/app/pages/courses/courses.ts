@@ -1,19 +1,22 @@
 import { afterNextRender, Component, inject, Injector } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { COURSES } from '../../site-data';
+import { Catalog } from '../../content/catalog';
+import { TrPipe } from '../../content/i18n';
 
 @Component({
   selector: 'app-courses',
-  imports: [RouterLink],
+  imports: [RouterLink, TrPipe],
   templateUrl: './courses.html',
 })
 export class Courses {
-  readonly courses = COURSES;
+  private readonly catalog = inject(Catalog);
+  readonly courses = this.catalog.courses;
   private readonly route = inject(ActivatedRoute);
   private readonly injector = inject(Injector);
 
   constructor() {
+    void this.catalog.load();
     this.route.fragment.pipe(takeUntilDestroyed()).subscribe((fragment) => {
       if (!fragment) {
         return;

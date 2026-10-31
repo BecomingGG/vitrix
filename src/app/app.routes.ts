@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './auth';
+import { roleGuard } from './content/roles';
 
 export const routes: Routes = [
   {
@@ -53,6 +54,27 @@ export const routes: Routes = [
     data: { title: 'My account' },
     canActivate: [authGuard],
     loadComponent: () => import('./pages/account/account').then((m) => m.Account),
+  },
+  {
+    path: 'courses/:slug',
+    data: { title: 'Course' },
+    loadComponent: () => import('./pages/course/course').then((m) => m.CoursePage),
+  },
+  {
+    path: 'tests/:id',
+    data: { title: 'Test' },
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/quiz/quiz').then((m) => m.QuizPage),
+  },
+  {
+    path: 'faq',
+    data: { title: 'Questions & answers' },
+    loadComponent: () => import('./pages/faq/faq').then((m) => m.FaqPage),
+  },
+  {
+    path: 'admin',
+    canActivate: [roleGuard('admin', 'editor')],
+    loadChildren: () => import('./pages/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
   },
   {
     path: 'privacy',

@@ -1,0 +1,92 @@
+<header class="admin-head">
+  <div>
+    <h1>Team</h1>
+    <p class="lesson-meta">
+      <strong>Editors</strong> manage courses, lessons, tests and Q&amp;A.
+      <strong>Admins</strong> can also enrol students, see results and manage this team. Changes
+      apply at the person's next login.
+    </p>
+  </div>
+</header>
+
+<section class="admin-card">
+  <h2>Add someone</h2>
+  <p class="lesson-meta">They need a VITRIX account first (Log in → Create account).</p>
+  <form class="inline-form" (submit)="$event.preventDefault(); search(term.value)">
+    <input #term type="search" placeholder="Search by email" aria-label="Search by email" />
+    <button type="submit" class="btn btn-ghost" [disabled]="searching()">
+      {{ searching() ? 'Searching…' : 'Search' }}
+    </button>
+  </form>
+  @if (found(); as list) {
+    <ng-container
+      [ngTemplateOutlet]="people"
+      [ngTemplateOutletContext]="{ $implicit: list, empty: 'No account with that email.' }"
+    />
+  }
+</section>
+
+<section class="admin-card">
+  <h2>Current team</h2>
+  @if (loading()) {
+    <p class="lesson-meta">Loading…</p>
+  } @else if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  } @else {
+    <ng-container
+      [ngTemplateOutlet]="people"
+      [ngTemplateOutletContext]="{ $implicit: staff(), empty: 'Nobody has a staff role yet.' }"
+    />
+  }
+</section>
+
+<ng-template #people let-list let-empty="empty">
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Person</th>
+          <th>Editor</th>
+          <th>Admin</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (u of list; track u.id) {
+          <tr>
+            <td>
+              {{ u.name
+              }}<span class="lesson-meta">{{ u.email }}{{ u.id === myId() ? ' · you' : '' }}</span>
+            </td>
+            <td>
+              <label class="switch">
+                <input
+                  type="checkbox"
+                  [checked]="has(u, 'editor')"
+                  (change)="toggle(u, 'editor')"
+                  [attr.aria-label]="'Editor: ' + u.email"
+                />
+                <span>{{ has(u, 'editor') ? 'Yes' : 'No' }}</span>
+              </label>
+            </td>
+            <td>
+              <label class="switch">
+                <input
+                  type="checkbox"
+                  [checked]="has(u, 'admin')"
+                  [disabled]="u.id === myId()"
+                  (change)="toggle(u, 'admin')"
+                  [attr.aria-label]="'Admin: ' + u.email"
+                />
+                <span>{{ has(u, 'admin') ? 'Yes' : 'No' }}</span>
+              </label>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="3" class="empty-state">{{ empty }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</ng-template>
