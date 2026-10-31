@@ -1,0 +1,170 @@
+@if (course(); as c) {
+  <section class="page-hero">
+    <div class="wrap">
+      <p class="eyebrow"><a routerLink="/courses">Courses</a> / {{ c.code }}</p>
+      <h1>{{ c.title | tr }}</h1>
+      <p class="lede">{{ c.summary | tr }}</p>
+    </div>
+  </section>
+
+  <section class="page-section">
+    <div class="wrap split form-split course-layout">
+      <div>
+        <img class="course-cover" [src]="c.imageUrl" [alt]="c.code + ' scenario'" />
+        <p class="prose-text">{{ (c.description | tr) || (c.summary | tr) }}</p>
+        @if (c.price !== null) {
+          <p class="price">{{ c.price }} GEL</p>
+        }
+      </div>
+
+      <div>
+        @if (detail(); as d) {
+          @if (d.enrolled) {
+            <p class="eyebrow">Your progress</p>
+            <h2 class="block-title progress-title">{{ completedCount() }} of {{ d.lessons.length }} lessons</h2>
+            <div
+              class="progress"
+              role="progressbar"
+              [attr.aria-valuenow]="completedCount()"
+              aria-valuemin="0"
+              [attr.aria-valuemax]="d.lessons.length"
+            >
+              <span
+                [style.width.%]="d.lessons.length ? (100 * completedCount()) / d.lessons.length : 0"
+              ></span>
+            </div>
+          } @else {
+            <div class="notice">
+              <h2>Join this course</h2>
+              @if (auth.signedIn()) {
+                <p>
+                  Lessons and tests open once you are enrolled. Apply and our team will add you.
+                </p>
+              } @else {
+                <p>
+                  Log in or create an account, then apply. Lessons and tests open once you are
+                  enrolled.
+                </p>
+              }
+              <a class="btn btn-red" routerLink="/apply">Apply now</a>
+            </div>
+          }
+
+          @if (d.lessons.length) {
+            <h2 class="block-title">Lessons</h2>
+            <ol class="lesson-list">
+              @for (lesson of d.lessons; track lesson.id; let i = $index) {
+                <li [class.done]="lesson.completed" [class.open]="openLessonId() === lesson.id">
+                  @if (d.enrolled) {
+                    <button
+                      type="button"
+                      class="lesson-head"
+                      (click)="toggle(lesson)"
+                      [attr.aria-expanded]="openLessonId() === lesson.id"
+                    >
+                      <span class="lesson-num">{{ lesson.completed ? '✓' : i + 1 }}</span>
+                      <span>{{ lesson.title | tr }}</span>
+                      @if (lesson.durationMinutes) {
+                        <span class="lesson-meta">{{ lesson.durationMinutes }} min</span>
+                      }
+                    </button>
+                    @if (openLessonId() === lesson.id) {
+                      <div class="lesson-body">
+                        @if (videoUrl(lesson); as url) {
+                          <div class="video">
+                            <iframe
+                              [src]="url"
+                              [title]="lesson.title | tr"
+                              allow="encrypted-media; picture-in-picture; fullscreen"
+                              allowfullscreen
+                              loading="lazy"
+                            ></iframe>
+                          </div>
+                        }
+                        @if (lesson.body | tr) {
+                          <p class="prose-text">{{ lesson.body | tr }}</p>
+                        }
+                        @if (!lesson.completed) {
+                          <button type="button" class="btn btn-red" (click)="complete(lesson)">
+                            Mark as completed
+                          </button>
+                        }
+                      </div>
+                    }
+                  } @else {
+                    <div class="lesson-head locked">
+                      <span class="lesson-num">{{ i + 1 }}</span>
+                      <span>{{ lesson.title | tr }}</span>
+                      @if (lesson.hasVideo) {
+                        <span class="lesson-meta">Video</span>
+                      }
+                    </div>
+                  }
+                </li>
+              }
+            </ol>
+          }
+
+          @if (d.quizzes.length) {
+            <h2 class="block-title">Tests</h2>
+            <ul class="quiz-list">
+              @for (quiz of d.quizzes; track quiz.id) {
+                <li>
+                  <div>
+                    <strong>{{ quiz.title | tr }}</strong>
+                    <span class="lesson-meta">
+                      {{ quiz.questionCount }} questions · pass mark {{ quiz.passPercent }}%
+                      @if (quiz.timeLimitMinutes) {
+                        · {{ quiz.timeLimitMinutes }} min
+                      }
+                    </span>
+                    @if (quiz.passed) {
+                      <span class="tag tag-ok">Passed · {{ quiz.bestScore }}%</span>
+                    } @else if (quiz.bestScore !== null && quiz.bestScore !== undefined) {
+                      <span class="tag">Best {{ quiz.bestScore }}%</span>
+                    }
+                  </div>
+                  @if (d.enrolled) {
+                    <a class="btn btn-ghost" [routerLink]="['/tests', quiz.id]">
+                      {{ quiz.attemptsUsed ? 'Try again' : 'Start test' }}
+                    </a>
+                  }
+                </li>
+              }
+            </ul>
+          }
+
+          @if (d.faqs.length) {
+            <h2 class="block-title">Questions about this course</h2>
+            @for (faq of d.faqs; track faq.id) {
+              <details class="faq">
+                <summary>{{ faq.question | tr }}</summary>
+                <p class="prose-text">{{ faq.answer | tr }}</p>
+              </details>
+            }
+          }
+        } @else if (!loading()) {
+          <div class="notice">
+            <h2>Interested?</h2>
+            <p>Apply and our team will get back to you with dates and details.</p>
+            <a class="btn btn-red" routerLink="/apply">Apply now</a>
+          </div>
+        } @else {
+          <p class="lesson-meta">Loading course…</p>
+        }
+      </div>
+    </div>
+  </section>
+} @else if (loading()) {
+  <section class="page-section">
+    <div class="wrap"><p class="lesson-meta">Loading course…</p></div>
+  </section>
+} @else {
+  <section class="page-hero">
+    <div class="wrap">
+      <h1>Course not found</h1>
+      <p class="lede">{{ error() }}</p>
+      <a class="btn btn-ghost" routerLink="/courses">All courses</a>
+    </div>
+  </section>
+}

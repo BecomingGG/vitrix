@@ -1,0 +1,129 @@
+<header class="admin-head">
+  <div>
+    <h1>Courses</h1>
+    <p class="lesson-meta">
+      Each course has its own lessons, videos and tests. Drafts are only visible here.
+    </p>
+  </div>
+  @if (!creating()) {
+    <button type="button" class="btn btn-red" (click)="creating.set(true)">+ New course</button>
+  }
+</header>
+
+@if (creating()) {
+  <form class="form admin-card" [formGroup]="newForm" (ngSubmit)="create()" novalidate>
+    <h2>New course</h2>
+    <div class="grid-2">
+      <label>
+        Short code
+        <input type="text" formControlName="code" placeholder="ACLS" />
+        @if (newForm.controls.code.invalid && newForm.controls.code.touched) {
+          <span class="error">Enter a short code.</span>
+        }
+      </label>
+      <label>
+        Title (English)
+        <input
+          type="text"
+          formControlName="title"
+          placeholder="Advanced Cardiovascular Life Support"
+        />
+        @if (newForm.controls.title.invalid && newForm.controls.title.touched) {
+          <span class="error">Enter a title.</span>
+        }
+      </label>
+    </div>
+    <p class="hint">
+      You can add the Georgian title, description, image and price on the next screen.
+    </p>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-red" [disabled]="busy()">
+        {{ busy() ? 'Creating…' : 'Create draft' }}
+      </button>
+      <button type="button" class="btn btn-ghost" (click)="creating.set(false)">Cancel</button>
+    </div>
+  </form>
+}
+
+@if (loading()) {
+  <p class="lesson-meta">Loading…</p>
+} @else if (error()) {
+  <p class="error" role="alert">{{ error() }}</p>
+} @else if (!courses().length) {
+  <div class="empty-state">
+    <h2>No courses yet</h2>
+    <p>Create the first course, then add lessons with YouTube videos and a test.</p>
+  </div>
+} @else {
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Order</th>
+          <th></th>
+          <th>Course</th>
+          <th>Price</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of courses(); track c.id; let i = $index, first = $first, last = $last) {
+          <tr>
+            <td class="order-cell">
+              <button
+                type="button"
+                class="icon-mini"
+                [disabled]="first"
+                (click)="reorder(i, -1)"
+                aria-label="Move up"
+              >
+                ↑
+              </button>
+              <button
+                type="button"
+                class="icon-mini"
+                [disabled]="last"
+                (click)="reorder(i, 1)"
+                aria-label="Move down"
+              >
+                ↓
+              </button>
+            </td>
+            <td>
+              @if (c.imageUrl) {
+                <img class="thumb" [src]="c.imageUrl" alt="" />
+              } @else {
+                <span class="thumb thumb-empty" aria-hidden="true">{{ c.code.slice(0, 2) }}</span>
+              }
+            </td>
+            <td>
+              <a class="row-title" [routerLink]="['/admin/courses', c.id]">{{ c.title | tr }}</a>
+              <span class="lesson-meta">{{ c.code }} · /courses/{{ c.slug }}</span>
+              @if (!c.title.ka) {
+                <span class="tag tag-warn">Georgian missing</span>
+              }
+            </td>
+            <td>{{ c.price !== null ? c.price + ' GEL' : '—' }}</td>
+            <td>
+              <button
+                type="button"
+                class="tag tag-button"
+                [class.tag-ok]="c.published"
+                (click)="togglePublished(c)"
+                [attr.aria-label]="
+                  c.published ? 'Published, click to hide' : 'Draft, click to publish'
+                "
+              >
+                {{ c.published ? 'Published' : 'Draft' }}
+              </button>
+            </td>
+            <td>
+              <a class="btn btn-ghost btn-sm" [routerLink]="['/admin/courses', c.id]">Edit</a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

@@ -1,0 +1,266 @@
+<p class="crumbs"><a routerLink="/admin/courses">← All courses</a></p>
+
+@if (loading()) {
+  <p class="lesson-meta">Loading…</p>
+} @else if (error()) {
+  <p class="error" role="alert">{{ error() }}</p>
+} @else if (course(); as c) {
+  <header class="admin-head">
+    <div>
+      <p class="eyebrow">{{ c.code }}</p>
+      <h1>{{ c.title | tr }}</h1>
+      <p class="lesson-meta">
+        <span class="tag" [class.tag-ok]="c.published">{{
+          c.published ? 'Published' : 'Draft'
+        }}</span>
+        {{ publishedLessons() }} lesson(s) · {{ quizzes().length }} test(s)
+        @if (c.published) {
+          · <a [routerLink]="['/courses', c.slug]" target="_blank">View on site ↗</a>
+        }
+      </p>
+    </div>
+  </header>
+
+  <!-- ===================================================== details -->
+  <form class="form admin-card" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <h2>Course details</h2>
+    <div class="grid-3">
+      <label>
+        Short code
+        <input type="text" formControlName="code" (blur)="suggestSlug()" />
+      </label>
+      <label>
+        Address
+        <input type="text" formControlName="slug" />
+        <span class="hint">/courses/{{ form.controls.slug.value || '…' }}</span>
+        @if (form.controls.slug.invalid && form.controls.slug.touched) {
+          <span class="error">Lowercase letters, numbers and dashes only.</span>
+        }
+      </label>
+      <label>
+        Price (GEL)
+        <input
+          type="number"
+          formControlName="price"
+          min="0"
+          step="1"
+          placeholder="Leave empty if on request"
+        />
+      </label>
+    </div>
+    <app-ltext-field label="Title" [group]="form.controls.title" required />
+    <app-ltext-field
+      label="Short summary"
+      [group]="form.controls.summary"
+      hint="One sentence shown on course cards."
+    />
+    <app-ltext-field label="Description" [group]="form.controls.description" multiline [rows]="5" />
+    <div class="grid-2 image-row">
+      <label>
+        Image
+        <input type="text" formControlName="imageUrl" placeholder="media/acls.jpg or https://…" />
+        <span class="hint">A file in public/media (e.g. media/acls.jpg) or a full image link.</span>
+      </label>
+      @if (form.controls.imageUrl.value) {
+        <img class="image-preview" [src]="form.controls.imageUrl.value" alt="Image preview" />
+      }
+    </div>
+    <label class="consent">
+      <input type="checkbox" formControlName="published" />
+      <span>Published — visible to visitors on the Courses page</span>
+    </label>
+    <div class="form-actions sticky-actions">
+      <button type="submit" class="btn btn-red" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : 'Save course' }}
+      </button>
+      @if (form.dirty) {
+        <span class="hint">Unsaved changes</span>
+      }
+    </div>
+  </form>
+
+  <!-- ===================================================== lessons -->
+  <section class="admin-card">
+    <div class="admin-head">
+      <div>
+        <h2>Lessons</h2>
+        <p class="lesson-meta">
+          Students open them in this order. Paste a YouTube link for the video (unlisted works).
+        </p>
+      </div>
+      @if (editingLesson() === null) {
+        <button type="button" class="btn btn-ghost" (click)="editLesson(null)">+ Add lesson</button>
+      }
+    </div>
+
+    <ol class="admin-list">
+      @for (l of lessons(); track l.id; let i = $index, first = $first, last = $last) {
+        <li>
+          @if (editingLesson() === l.id) {
+            <ng-container [ngTemplateOutlet]="lessonEditor" />
+          } @else {
+            <div class="admin-row">
+              <span class="order-cell">
+                <button
+                  type="button"
+                  class="icon-mini"
+                  [disabled]="first"
+                  (click)="reorderLesson(i, -1)"
+                  aria-label="Move up"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  class="icon-mini"
+                  [disabled]="last"
+                  (click)="reorderLesson(i, 1)"
+                  aria-label="Move down"
+                >
+                  ↓
+                </button>
+              </span>
+              <span class="lesson-num">{{ i + 1 }}</span>
+              <div class="grow">
+                <strong>{{ l.title | tr }}</strong>
+                <span class="lesson-meta">
+                  {{ l.youtubeId ? '▶ Video' : 'Text only' }}
+                  @if (l.durationMinutes) {
+                    · {{ l.durationMinutes }} min
+                  }
+                  @if (!l.published) {
+                    · <span class="tag">Hidden</span>
+                  }
+                  @if (!l.title.ka) {
+                    · <span class="tag tag-warn">Georgian missing</span>
+                  }
+                </span>
+              </div>
+              <button
+                type="button"
+                class="btn btn-ghost btn-sm"
+                (click)="editLesson(l)"
+                [disabled]="editingLesson() !== null"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                class="btn btn-danger btn-sm"
+                (click)="deleteLesson(l)"
+                [disabled]="editingLesson() !== null"
+              >
+                Delete
+              </button>
+            </div>
+          }
+        </li>
+      } @empty {
+        @if (editingLesson() !== 'new') {
+          <li class="empty-state"><p>No lessons yet. Add the first one.</p></li>
+        }
+      }
+      @if (editingLesson() === 'new') {
+        <li><ng-container [ngTemplateOutlet]="lessonEditor" /></li>
+      }
+    </ol>
+  </section>
+
+  <ng-template #lessonEditor>
+    <form class="form lesson-editor" [formGroup]="lessonForm" (ngSubmit)="saveLesson()" novalidate>
+      <h3>{{ editingLesson() === 'new' ? 'New lesson' : 'Edit lesson' }}</h3>
+      <app-ltext-field label="Title" [group]="lessonForm.controls.title" required />
+      <div class="grid-2 image-row">
+        <label>
+          YouTube video
+          <input
+            type="text"
+            formControlName="video"
+            placeholder="https://youtu.be/… or the video id"
+          />
+          @if (lessonForm.controls.video.invalid) {
+            <span class="error">That doesn't look like a YouTube link.</span>
+          } @else {
+            <span class="hint"
+              >Optional. Upload the video to YouTube as "Unlisted" and paste its link.</span
+            >
+          }
+        </label>
+        @if (videoPreview(); as vid) {
+          <img
+            class="image-preview"
+            [src]="'https://i.ytimg.com/vi/' + vid + '/mqdefault.jpg'"
+            alt="Video thumbnail"
+          />
+        }
+      </div>
+      <app-ltext-field
+        label="Lesson text"
+        [group]="lessonForm.controls.body"
+        multiline
+        [rows]="6"
+        hint="Plain text. Empty lines start new paragraphs."
+      />
+      <div class="grid-2">
+        <label>
+          Duration (minutes)
+          <input type="number" formControlName="durationMinutes" min="0" />
+        </label>
+        <label class="consent">
+          <input type="checkbox" formControlName="published" />
+          <span>Visible to enrolled students</span>
+        </label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-red">Save lesson</button>
+        <button type="button" class="btn btn-ghost" (click)="cancelLesson()">Cancel</button>
+      </div>
+    </form>
+  </ng-template>
+
+  <!-- ===================================================== tests -->
+  <section class="admin-card">
+    <h2>Tests</h2>
+    <ul class="admin-list">
+      @for (q of quizzes(); track q.id) {
+        <li class="admin-row">
+          <div class="grow">
+            <a class="row-title" [routerLink]="['/admin/tests', q.id]">{{ q.title | tr }}</a>
+            <span class="lesson-meta">
+              {{ q.questionCount }} question(s) · pass {{ q.passPercent }}% ·
+              {{ q.maxAttempts ? q.maxAttempts + ' attempt(s)' : 'unlimited attempts' }}
+              @if (q.timeLimitMinutes) {
+                · {{ q.timeLimitMinutes }} min
+              }
+            </span>
+          </div>
+          <span class="tag" [class.tag-ok]="q.published">{{
+            q.published ? 'Published' : 'Draft'
+          }}</span>
+          <a class="btn btn-ghost btn-sm" [routerLink]="['/admin/tests', q.id]">Edit</a>
+        </li>
+      } @empty {
+        <li class="empty-state"><p>No tests yet.</p></li>
+      }
+    </ul>
+    <form class="inline-form" (submit)="$event.preventDefault(); addQuiz()">
+      <input
+        type="text"
+        [formControl]="newQuizTitle"
+        placeholder="New test title, e.g. Final exam"
+        aria-label="New test title"
+      />
+      <button type="submit" class="btn btn-ghost">+ Add test</button>
+    </form>
+  </section>
+
+  <!-- ===================================================== danger -->
+  <section class="danger-zone">
+    <h2>Delete course</h2>
+    <p>
+      Removes the course, its lessons, tests, enrollments and all results. Prefer "Draft" to hide
+      it.
+    </p>
+    <button type="button" class="btn btn-danger" (click)="remove()">Delete this course</button>
+  </section>
+}

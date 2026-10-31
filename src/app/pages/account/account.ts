@@ -1,13 +1,18 @@
+import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Auth } from '../../auth';
 import { Notify } from '../../notify';
-import { COURSES } from '../../site-data';
+import { ContentApi } from '../../content/content.api';
+import { CONTENT_ENABLED } from '../../content/content.config';
+import { AttemptRow, MyCourse } from '../../content/content.models';
+import { TrPipe } from '../../content/i18n';
+import { isStaff } from '../../content/roles';
 
 @Component({
   selector: 'app-account',
-  imports: [RouterLink, ReactiveFormsModule],
+  imports: [RouterLink, ReactiveFormsModule, TrPipe, DatePipe],
   templateUrl: './account.html',
 })
 export class Account {
@@ -17,10 +22,28 @@ export class Account {
   private readonly fb = inject(FormBuilder);
   readonly user = this.auth.user;
 
-  readonly enrolled = computed(() => {
-    const ids = this.user()?.courses ?? [];
-    return COURSES.filter((course) => ids.includes(course.id));
-  });
+  private readonly api = inject(ContentApi);
+  readonly contentEnabled = CONTENT_ENABLED;
+  readonly staff = computed(() => isStaff(this.user()));
+  readonly myCourses = signal<MyCourse[]>([]);
+  readonly results = signal<AttemptRow[]>([]);
+  readonly loadingCourses = signal(CONTENT_ENABLED);
+
+  constructor() {
+    if (CONTENT_ENABLED) {
+      Promise.all([this.api.myCourses(), this.api.myAttempts()])
+        .then(([courses, results]) => {
+          this.myCourses.set(courses);
+          this.results.set(results);
+        })
+        .catch(() => undefined) // course server unreachable: show the empty state
+        .finally(() => this.loadingCourses.set(false));
+    }
+  }
+
+  percent(c: MyCourse): number {
+    return c.lessonsTotal ? Math.round((100 * c.lessonsCompleted) / c.lessonsTotal) : 0;
+  }
 
   /** "Delete account": shown only after the first click, and needs the password. */
   readonly confirmingDelete = signal(false);

@@ -52,8 +52,8 @@
           Course
           <select formControlName="course">
             <option value="" disabled>Select a program</option>
-            @for (course of courses; track course.id) {
-              <option [value]="course.code">{{ course.code }} — {{ course.name }}</option>
+            @for (course of courses(); track course.id) {
+              <option [value]="course.code">{{ course.code }} — {{ course.title | tr }}</option>
             }
           </select>
           @if (invalid('course')) {

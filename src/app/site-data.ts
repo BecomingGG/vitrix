@@ -31,6 +31,7 @@ export const NAV: NavItem[] = [
   { label: 'Simulation', path: '/simulation' },
   { label: 'Faculty', path: '/faculty' },
   { label: 'Partners', path: '/partners' },
+  { label: 'FAQ', path: '/faq' },
   { label: 'Contact', path: '/contact' },
 ];
 

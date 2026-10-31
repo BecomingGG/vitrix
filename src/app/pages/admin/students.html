@@ -1,0 +1,102 @@
+<header class="admin-head">
+  <div>
+    <h1>Students</h1>
+    <p class="lesson-meta">
+      Enrol students by email. If they don't have an account yet, the course appears as soon as they
+      sign up with that email.
+    </p>
+  </div>
+</header>
+
+<form class="form admin-card" [formGroup]="form" (ngSubmit)="enroll()" novalidate>
+  <h2>Enrol students</h2>
+  <div class="grid-2">
+    <label>
+      Course
+      <select formControlName="courseId">
+        <option value="" disabled>Choose a course</option>
+        @for (c of courses(); track c.id) {
+          <option [value]="c.id">{{ c.code }} — {{ c.title | tr }}</option>
+        }
+      </select>
+      @if (form.controls.courseId.invalid && form.controls.courseId.touched) {
+        <span class="error">Choose a course.</span>
+      }
+    </label>
+    <label>
+      Email address(es)
+      <textarea
+        formControlName="emails"
+        rows="2"
+        placeholder="one@example.com, two@example.com"
+      ></textarea>
+      <span class="hint">Several at once: separate with commas, spaces or new lines.</span>
+    </label>
+  </div>
+  <div class="form-actions">
+    <button type="submit" class="btn btn-red" [disabled]="busy()">
+      {{ busy() ? 'Enrolling…' : 'Enrol' }}
+    </button>
+  </div>
+</form>
+
+<div class="filters">
+  <label>
+    Course
+    <select [value]="courseFilter()" (change)="courseFilter.set($any($event.target).value)">
+      <option value="">All courses</option>
+      @for (c of courses(); track c.id) {
+        <option [value]="c.id">{{ c.code }}</option>
+      }
+    </select>
+  </label>
+  <label>
+    Search
+    <input
+      type="search"
+      placeholder="Email"
+      [value]="search()"
+      (input)="search.set($any($event.target).value)"
+    />
+  </label>
+  <span class="lesson-meta">{{ visible().length }} enrollment(s)</span>
+</div>
+
+@if (loading()) {
+  <p class="lesson-meta">Loading…</p>
+} @else if (error()) {
+  <p class="error" role="alert">{{ error() }}</p>
+} @else {
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Course</th>
+          <th>Enrolled</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (e of visible(); track e.id) {
+          <tr>
+            <td>{{ e.email }}</td>
+            <td>{{ e.courseTitle | tr }}</td>
+            <td>{{ e.createdAt | date: 'd MMM y' }}</td>
+            <td>
+              <button type="button" class="btn btn-danger btn-sm" (click)="remove(e)">
+                Remove
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4" class="empty-state">
+              No enrollments{{ search() || courseFilter() ? ' match the filter' : ' yet' }}.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
