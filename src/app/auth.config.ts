@@ -8,7 +8,7 @@
  * login off on the published site (links hidden, pages open to everyone).
  */
 const LOCAL_IDENTITY_URL: string = 'http://localhost:8080';
-const PRODUCTION_IDENTITY_URL: string = 'https://vitrix-identity.onrender.com'; // Render (identity-api)
+const PRODUCTION_IDENTITY_URL: string = 'https://vitrix-identity-24j8.onrender.com'; // Render (identity-api)
 
 const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
