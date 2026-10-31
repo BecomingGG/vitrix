@@ -93,8 +93,11 @@ export class Auth {
     }
   }
 
-  /** Permanently deletes the signed-in member's account (password required), then signs out. */
-  async deleteAccount(password: string): Promise<void> {
+  /**
+   * Permanently deletes the signed-in member's account (password required), then signs out.
+   * `afterDeleted` runs while the token is still in hand, e.g. to delete course progress elsewhere.
+   */
+  async deleteAccount(password: string, afterDeleted?: () => Promise<void>): Promise<void> {
     this.assertEnabled();
     const token = this.accessToken();
     if (!token) {
@@ -109,6 +112,9 @@ export class Auth {
       );
     } catch (error) {
       throw new Error(describeError(error));
+    }
+    if (afterDeleted) {
+      await afterDeleted().catch((e) => console.warn('VITRIX: could not remove related data.', e));
     }
     this.logout();
   }

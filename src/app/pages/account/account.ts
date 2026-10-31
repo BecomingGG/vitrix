@@ -78,7 +78,10 @@ export class Account {
     this.deleting.set(true);
     this.deleteError.set('');
     try {
-      await this.auth.deleteAccount(this.deleteForm.getRawValue().password);
+      // Also remove course progress, results and enrollments (vitrix-api) — see the Privacy page.
+      await this.auth.deleteAccount(this.deleteForm.getRawValue().password, () =>
+        CONTENT_ENABLED ? this.api.deleteMyData() : Promise.resolve(),
+      );
       this.notify.info('Your account and personal data have been deleted.');
       await this.router.navigateByUrl('/');
     } catch (error) {

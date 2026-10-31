@@ -174,3 +174,12 @@ export interface Enrollment {
   email: string;
   createdAt: string;
 }
+
+/** identity-api GET /api/admin/users — people and their staff roles (admin only). */
+export interface StaffUser {
+  id: string;
+  email: string;
+  name: string;
+  roles: string[];
+  createdAt: string;
+}

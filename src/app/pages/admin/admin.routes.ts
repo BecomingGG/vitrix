@@ -35,6 +35,12 @@ export const ADMIN_ROUTES: Routes = [
         loadComponent: () => import('./students').then((m) => m.AdminStudents),
       },
       {
+        path: 'team',
+        data: { title: 'Admin · Team' },
+        canActivate: [roleGuard('admin')],
+        loadComponent: () => import('./team').then((m) => m.AdminTeam),
+      },
+      {
         path: 'results',
         data: { title: 'Admin · Results' },
         canActivate: [roleGuard('admin')],

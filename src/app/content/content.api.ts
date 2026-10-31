@@ -55,6 +55,10 @@ export class ContentApi {
   submitAttempt(attemptId: string, answers: AnswerSubmission[]): Promise<AttemptResult> {
     return this.send('POST', `/api/attempts/${attemptId}/submit`, { answers });
   }
+  /** Removes my progress, results and enrollments (used when deleting the account). */
+  deleteMyData(): Promise<void> {
+    return this.send('DELETE', '/api/me');
+  }
 
   // ------------------------------------------------------------------ staff (admin + editor)
   adminCourses(): Promise<Course[]> {

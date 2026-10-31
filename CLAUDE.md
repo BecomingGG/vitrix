@@ -45,7 +45,7 @@ No test files exist yet (`skipTests: true` in angular.json).
 | [src/app/auth.config.ts](src/app/auth.config.ts) | Identity server URL, client id `vitrix`, scopes, and when login is switched on. |
 | [src/app/pages/privacy/](src/app/pages/privacy/) | Privacy policy page (`/privacy`, linked in the footer and on sign-up). Contact email: `PRIVACY_CONTACT_EMAIL` in `site-data.ts`. |
 | [src/app/content/](src/app/content/) | Courses/tests data layer: `content.models.ts` (the API contract), `content.api.ts` (all vitrix-api calls), `content.config.ts` (API URL), `catalog.ts` (course list with built-in fallback), `roles.ts` (admin/editor + `roleGuard`), `i18n.ts` (`LText` EN/KA + `tr` pipe), `youtube.ts`. |
-| [src/app/pages/admin/](src/app/pages/admin/) | Admin panel `/admin`: courses, lessons, tests/questions, Q&A (admin + editor); students and results (admin only). |
+| [src/app/pages/admin/](src/app/pages/admin/) | Admin panel `/admin`: courses, lessons, tests/questions, Q&A (admin + editor); students, results and team roles (admin only; team calls identity-api `/api/admin/users`). |
 | [src/app/notify.ts](src/app/notify.ts) | `Notify` service: short toast messages (`success`, `info`, `error`), shown by the app shell. |
 | [src/app/layout/](src/app/layout/) | Header (nav, search, login link, mobile menu) and footer. |
 | [src/app/mark.ts](src/app/mark.ts) | The VITRIX logo as an SVG component. |
@@ -129,6 +129,8 @@ Port 4200 is also used by `identity-web` (the test client); run one of them at a
   attempt on the server (attempt limit, timer); scoring happens on the server and correct answers
   are never sent before submitting. My account shows course progress and test results.
 - **Enrollment** is by email (admin → Students), so it works before the person has an account.
+- **Team** (admin → Team) gives people the `editor`/`admin` role on identity-api; it applies at their next login.
+- **Deleting an account** also calls `DELETE /api/me` on vitrix-api (progress, results, enrollments).
 - **Videos:** YouTube, uploaded as *Unlisted*; only the 11-character id is stored and validated.
 - **Fallback:** `CONTENT_API_URL` in `content/content.config.ts` is `''` on the published site
   until vitrix-api is deployed; then the Courses page uses the built-in list in `site-data.ts`,

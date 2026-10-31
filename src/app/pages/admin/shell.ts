@@ -16,6 +16,7 @@ import { isAdmin } from '../../content/roles';
           @if (admin()) {
             <a routerLink="students" routerLinkActive="is-active">Students</a>
             <a routerLink="results" routerLinkActive="is-active">Test results</a>
+            <a routerLink="team" routerLinkActive="is-active">Team</a>
           }
           <p class="admin-role">
             Signed in as {{ auth.user()?.name }}<br />
