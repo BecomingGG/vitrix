@@ -5,10 +5,10 @@ Medical students and clinicians browse courses (ACLS, ATLS, PHTLS, BLS, Critical
 Simulation), apply, and — eventually — buy courses and see them in their account.
 
 The site is a **static Angular app** published on **GitHub Pages**
-(<https://becominggg.github.io/vitrix/>, from the `gh-pages` branch). Accounts come from the
-separate **identity-api** server (repo `BecomingGG/identity-api`), deployed on Render at
-<https://vitrix-identity.onrender.com> with a Neon Postgres database. Courses, lessons, Q&A,
-tests and student progress come from **vitrix-api** (repo `BecomingGG/vitrix-api`, same
+(<https://vitrix-ge.github.io/vitrix/>, from the `gh-pages` branch). Accounts come from the
+separate **identity-api** server (repo `vitrix-ge/identity-api`), deployed on Render at
+<https://vitrix-identity-24j8.onrender.com> with a Neon Postgres database. Courses, lessons, Q&A,
+tests and student progress come from **vitrix-api** (repo `vitrix-ge/vitrix-api`, same
 database, schema `vitrix`). Apply/Contact forms have no backend yet.
 
 ## Commands
@@ -90,9 +90,9 @@ Pages:
   job of the future purchase flow (an API that validates the identity server's tokens).
 
 **Which server:** on `localhost` the site uses the identity server from docker compose
-(`http://localhost:8080`); the published site uses `https://vitrix-identity.onrender.com`
+(`http://localhost:8080`); the published site uses `https://vitrix-identity-24j8.onrender.com`
 (`PRODUCTION_IDENTITY_URL` in `auth.config.ts`; set it to `''` to switch login off there —
-links hidden, pages open). The Render server allows requests from `https://becominggg.github.io`
+links hidden, pages open). The Render server allows requests from `https://vitrix-ge.github.io`
 (CORS, set in identity-api's `render.yaml`). On Render's free plan the server sleeps after 15
 minutes idle, so the first login after a quiet period takes about a minute.
 
