@@ -105,6 +105,8 @@ export interface CourseDetail {
   quizzes: QuizSummary[];
   /** The signed-in user may open lessons and tests (enrolled, or staff). */
   enrolled: boolean;
+  /** Enrolled by email, but the member hasn't confirmed their email yet (lessons stay closed). */
+  needsEmailConfirmation: boolean;
 }
 
 /** GET /api/me/courses */

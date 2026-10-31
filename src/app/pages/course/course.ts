@@ -1,3 +1,4 @@
+import { ConfirmEmailNotice } from '../../confirm-email-notice';
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
@@ -18,7 +19,7 @@ import { youtubeEmbedUrl } from '../../content/youtube';
  */
 @Component({
   selector: 'app-course',
-  imports: [RouterLink, TrPipe],
+  imports: [RouterLink, TrPipe, ConfirmEmailNotice],
   templateUrl: './course.html',
 })
 export class CoursePage {

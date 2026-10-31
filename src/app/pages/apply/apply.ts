@@ -1,12 +1,13 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Catalog } from '../../content/catalog';
 import { TrPipe } from '../../content/i18n';
 import { Auth } from '../../auth';
+import { ConfirmEmailNotice } from '../../confirm-email-notice';
 
 @Component({
   selector: 'app-apply',
-  imports: [ReactiveFormsModule, TrPipe],
+  imports: [ReactiveFormsModule, TrPipe, ConfirmEmailNotice],
   templateUrl: './apply.html',
 })
 export class Apply {
@@ -14,6 +15,12 @@ export class Apply {
   private readonly catalog = inject(Catalog);
   readonly courses = this.catalog.courses;
   readonly sent = signal(false);
+  private readonly auth = inject(Auth);
+  /** Signed in with an email that isn't confirmed yet: confirm first, then apply. */
+  readonly needsConfirmation = computed(() => {
+    const user = this.auth.user();
+    return !!user && !user.emailVerified;
+  });
 
   readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
@@ -26,7 +33,7 @@ export class Apply {
   constructor() {
     void this.catalog.load();
     // Signed in: start from the account's details (they can still be edited).
-    const user = inject(Auth).user();
+    const user = this.auth.user();
     if (user) {
       this.form.patchValue({
         email: user.email,

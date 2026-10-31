@@ -22,7 +22,7 @@ export interface Pillar {
  * Where people can reach the institute about their personal data (shown on /privacy).
  * Set this to a real, monitored address, e.g. 'privacy@vitrix.ge'.
  */
-export const PRIVACY_CONTACT_EMAIL = '';
+export const PRIVACY_CONTACT_EMAIL = 'vitrix.contact1@gmail.com';
 
 export const NAV: NavItem[] = [
   { label: 'Home', path: '/', exact: true },

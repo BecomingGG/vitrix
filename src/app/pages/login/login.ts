@@ -4,6 +4,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Auth } from '../../auth';
 import { Notify } from '../../notify';
 
+type Mode = 'login' | 'register' | 'forgot';
+
 @Component({
   selector: 'app-login',
   imports: [ReactiveFormsModule, RouterLink],
@@ -17,11 +19,19 @@ export class Login {
   private readonly notify = inject(Notify);
 
   readonly enabled = this.auth.enabled;
-  readonly mode = signal<'login' | 'register'>('login');
+  readonly mode = signal<Mode>('login');
   readonly busy = signal(false);
   readonly failure = signal('');
   /** Shown in the form, e.g. after an account was created but automatic login failed. */
   readonly success = signal('');
+
+  constructor() {
+    // /login?mode=forgot (from "Send a new link" on the reset page) or ?mode=register.
+    const mode = this.route.snapshot.queryParamMap.get('mode');
+    if (mode === 'forgot' || mode === 'register') {
+      this.setMode(mode);
+    }
+  }
 
   readonly form = this.fb.nonNullable.group({
     name: [''],
@@ -32,11 +42,15 @@ export class Login {
     website: [''],
   });
 
-  setMode(mode: 'login' | 'register'): void {
+  setMode(mode: Mode): void {
     this.mode.set(mode);
     this.failure.set('');
     this.success.set('');
-    const { name, acceptPrivacy } = this.form.controls;
+    const { name, acceptPrivacy, password } = this.form.controls;
+    password.setValidators(
+      mode === 'forgot' ? null : [Validators.required, Validators.minLength(8)],
+    );
+    password.updateValueAndValidity();
     name.setValidators(mode === 'register' ? Validators.required : null);
     name.updateValueAndValidity();
     acceptPrivacy.setValidators(mode === 'register' ? Validators.requiredTrue : null);
@@ -58,7 +72,13 @@ export class Login {
     this.failure.set('');
     this.success.set('');
     try {
-      if (this.mode() === 'register') {
+      if (this.mode() === 'forgot') {
+        await this.auth.forgotPassword(email);
+        this.success.set(
+          `If there is an account for ${email.trim()}, we have sent it a link to choose a new ` +
+            'password. It works for 24 hours; check your spam folder too.',
+        );
+      } else if (this.mode() === 'register') {
         await this.createAccount(name, email, password, acceptPrivacy, website);
       } else {
         await this.auth.login(email, password);
@@ -94,7 +114,10 @@ export class Login {
       return;
     }
 
-    this.notify.success(`Account created. Welcome to VITRIX, ${this.auth.user()?.name ?? name}!`);
+    this.notify.success(
+      `Account created. Welcome to VITRIX, ${this.auth.user()?.name ?? name}! ` +
+        `We sent a confirmation link to ${email.trim()}.`,
+    );
     await this.goOn();
   }
 

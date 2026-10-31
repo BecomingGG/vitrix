@@ -50,6 +50,17 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/login/login').then((m) => m.Login),
   },
   {
+    path: 'confirm-email',
+    data: { title: 'Confirm email' },
+    loadComponent: () => import('./pages/confirm-email/confirm-email').then((m) => m.ConfirmEmail),
+  },
+  {
+    path: 'reset-password',
+    data: { title: 'New password' },
+    loadComponent: () =>
+      import('./pages/reset-password/reset-password').then((m) => m.ResetPassword),
+  },
+  {
     path: 'account',
     data: { title: 'My account' },
     canActivate: [authGuard],
