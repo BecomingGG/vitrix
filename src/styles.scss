@@ -2110,3 +2110,46 @@ td .lesson-meta {
     flex-wrap: wrap;
   }
 }
+
+/* Email confirmation / password reset */
+.confirm-notice {
+  border-left: 3px solid var(--red);
+  margin-bottom: 32px;
+}
+
+app-confirm-email-notice {
+  display: block;
+}
+
+.notice + app-confirm-email-notice .confirm-notice {
+  margin-top: 24px;
+}
+
+.form-split app-confirm-email-notice .confirm-notice {
+  margin-bottom: 0;
+}
+
+.confirm-notice h2 {
+  font-size: 28px;
+}
+
+.confirm-notice p {
+  margin: 0;
+}
+
+.form-link {
+  justify-self: start;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.form-link:hover {
+  color: #fff;
+}

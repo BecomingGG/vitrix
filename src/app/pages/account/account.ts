@@ -1,8 +1,9 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Auth } from '../../auth';
+import { ConfirmEmailNotice } from '../../confirm-email-notice';
 import { Notify } from '../../notify';
 import { ContentApi } from '../../content/content.api';
 import { CONTENT_ENABLED } from '../../content/content.config';
@@ -12,7 +13,7 @@ import { isStaff } from '../../content/roles';
 
 @Component({
   selector: 'app-account',
-  imports: [RouterLink, ReactiveFormsModule, TrPipe, DatePipe],
+  imports: [RouterLink, ReactiveFormsModule, TrPipe, DatePipe, ConfirmEmailNotice],
   templateUrl: './account.html',
 })
 export class Account {
@@ -30,7 +31,20 @@ export class Account {
   readonly loadingCourses = signal(CONTENT_ENABLED);
 
   constructor() {
-    if (CONTENT_ENABLED) {
+    // Load courses now, and again once the email gets confirmed (they need a confirmed email).
+    let verified: boolean | undefined;
+    effect(() => {
+      const now = this.user()?.emailVerified;
+      if (now !== verified) {
+        verified = now;
+        untracked(() => this.loadCourses());
+      }
+    });
+  }
+
+  private loadCourses(): void {
+    if (CONTENT_ENABLED && this.user()) {
+      this.loadingCourses.set(true);
       Promise.all([this.api.myCourses(), this.api.myAttempts()])
         .then(([courses, results]) => {
           this.myCourses.set(courses);

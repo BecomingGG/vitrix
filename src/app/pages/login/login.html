@@ -1,7 +1,11 @@
 <section class="page-hero">
   <div class="wrap">
     <p class="eyebrow">Student area</p>
-    <h1>{{ mode() === 'login' ? 'Log in' : 'Create account' }}</h1>
+    <h1>
+      {{
+        mode() === 'login' ? 'Log in' : mode() === 'register' ? 'Create account' : 'Reset password'
+      }}
+    </h1>
     <p class="lede">Your account keeps your applications and courses in one place.</p>
   </div>
 </section>
@@ -9,11 +13,18 @@
 <section class="page-section">
   <div class="wrap split form-split">
     <div>
-      <h2>{{ mode() === 'login' ? 'Welcome back' : 'Join VITRIX' }}</h2>
-      <p>
-        Sign in to see the programs you are enrolled in, or create an account before you buy your
-        first course.
-      </p>
+      @if (mode() === 'forgot') {
+        <h2>Forgot your password?</h2>
+        <p>
+          Enter the email you signed up with and we will send you a link to choose a new password.
+        </p>
+      } @else {
+        <h2>{{ mode() === 'login' ? 'Welcome back' : 'Join VITRIX' }}</h2>
+        <p>
+          Sign in to see the programs you are enrolled in, or create an account before you buy your
+          first course.
+        </p>
+      }
     </div>
 
     @if (!enabled) {
@@ -58,23 +69,30 @@
             <span class="error">Enter a valid email.</span>
           }
         </label>
-        <label>
-          Password
-          <input
-            type="password"
-            formControlName="password"
-            [attr.autocomplete]="mode() === 'login' ? 'current-password' : 'new-password'"
-          />
-          @if (invalid('password')) {
-            <span class="error">Use at least 8 characters.</span>
+        @if (mode() !== 'forgot') {
+          <label>
+            Password
+            <input
+              type="password"
+              formControlName="password"
+              [attr.autocomplete]="mode() === 'login' ? 'current-password' : 'new-password'"
+            />
+            @if (invalid('password')) {
+              <span class="error">Use at least 8 characters.</span>
+            }
+            @if (mode() === 'register') {
+              <span class="hint">
+                At least 8 characters, with an uppercase and a lowercase letter, a number and a
+                symbol.
+              </span>
+            }
+          </label>
+          @if (mode() === 'login') {
+            <button class="form-link" type="button" (click)="setMode('forgot')">
+              Forgot password?
+            </button>
           }
-          @if (mode() === 'register') {
-            <span class="hint">
-              At least 8 characters, with an uppercase and a lowercase letter, a number and a
-              symbol.
-            </span>
-          }
-        </label>
+        }
 
         @if (mode() === 'register') {
           <label class="consent">
@@ -104,12 +122,23 @@
         }
 
         <button class="btn btn-red" type="submit" [disabled]="busy()">
-          @if (busy()) {
-            {{ mode() === 'login' ? 'Logging in…' : 'Creating account…' }}
-          } @else {
-            {{ mode() === 'login' ? 'Log in' : 'Create account' }}
+          @switch (mode()) {
+            @case ('login') {
+              {{ busy() ? 'Logging in…' : 'Log in' }}
+            }
+            @case ('register') {
+              {{ busy() ? 'Creating account…' : 'Create account' }}
+            }
+            @case ('forgot') {
+              {{ busy() ? 'Sending…' : 'Send reset link' }}
+            }
           }
         </button>
+        @if (mode() === 'forgot') {
+          <button class="form-link" type="button" (click)="setMode('login')">
+            ← Back to log in
+          </button>
+        }
       </form>
     }
   </div>

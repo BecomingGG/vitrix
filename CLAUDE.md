@@ -46,10 +46,11 @@ No test files exist yet (`skipTests: true` in angular.json).
 | [src/app/pages/privacy/](src/app/pages/privacy/) | Privacy policy page (`/privacy`, linked in the footer and on sign-up). Contact email: `PRIVACY_CONTACT_EMAIL` in `site-data.ts`. |
 | [src/app/content/](src/app/content/) | Courses/tests data layer: `content.models.ts` (the API contract), `content.api.ts` (all vitrix-api calls), `content.config.ts` (API URL), `catalog.ts` (course list with built-in fallback), `roles.ts` (admin/editor + `roleGuard`), `i18n.ts` (`LText` EN/KA + `tr` pipe), `youtube.ts`. |
 | [src/app/pages/admin/](src/app/pages/admin/) | Admin panel `/admin`: courses, lessons, tests/questions, Q&A (admin + editor); students, results and team roles (admin only; team calls identity-api `/api/admin/users`). |
+| [src/app/confirm-email-notice.ts](src/app/confirm-email-notice.ts) | "Confirm your email" box (resend / "I've confirmed it") for signed-in members with an unconfirmed email; used on account, apply and course pages. |
 | [src/app/notify.ts](src/app/notify.ts) | `Notify` service: short toast messages (`success`, `info`, `error`), shown by the app shell. |
 | [src/app/layout/](src/app/layout/) | Header (nav, search, login link, mobile menu) and footer. |
 | [src/app/mark.ts](src/app/mark.ts) | The VITRIX logo as an SVG component. |
-| `src/app/pages/*` | One folder per page: home, about, courses, simulation, faculty, partners, contact, apply, login, account, privacy, course (`/courses/:slug`), quiz (`/tests/:id`), faq. |
+| `src/app/pages/*` | One folder per page: home, about, courses, simulation, faculty, partners, contact, apply, login, account, privacy, course (`/courses/:slug`), quiz (`/tests/:id`), faq, confirm-email, reset-password. |
 
 ## Login (current state)
 
@@ -77,6 +78,22 @@ Privacy and spam protection:
   `DELETE {IDENTITY_URL}/api/account` and signs out. It removes the user and all their tokens.
 - If bot sign-ups ever get through anyway, the next step is Cloudflare Turnstile (free CAPTCHA).
 
+Email confirmation and password reset (identity-api sends the emails through Gmail SMTP from
+`vitrix.contact1@gmail.com` with an App password, set on Render as `Email__Username` / `Email__Password`):
+
+- Sign-up sends a confirmation link: `{site}/confirm-email?user=…&token=…` → page posts it to
+  `POST /api/account/confirm-email`. Links work for 24 hours.
+- Members can log in **before** confirming. The token has `email_verified` (`Member.emailVerified`).
+  Unconfirmed members see `<app-confirm-email-notice>` (resend → `POST /api/account/resend-confirmation`;
+  "I've confirmed it" refreshes the token) and **cannot apply or open enrolled courses**
+  (vitrix-api also refuses lessons/tests and returns `needsEmailConfirmation` on the course).
+  Enrollment is by email, so this stops someone from claiming another person's courses.
+- Forgot password: login page → "Forgot password?" (`/login?mode=forgot`) → `POST /api/account/forgot-password`
+  (same answer whether or not the account exists) → email link `{site}/reset-password?user=…&token=…`
+  → new password (`POST /api/account/reset-password`), which signs out all other sessions, confirms
+  the email and unlocks the account; the page then logs in with the new password.
+- Locally (no SMTP settings) identity-api writes the links to its console log instead of sending.
+
 Pages:
 
 - `/login` — two tabs, **Log in** and **Create account**. Creating an account signs the member
@@ -103,7 +120,7 @@ contents of `dist/vitrix/browser` (plus a copy of `index.html` as `404.html`, so
 `/vitrix/login` work):
 
 ```bash
-npx ng build --base-href /vitrix/
+NG_CLI_ANALYTICS=false npx ng build --base-href /vitrix/
 cp dist/vitrix/browser/index.html dist/vitrix/browser/404.html
 # then commit the contents of dist/vitrix/browser to the gh-pages branch
 ```
@@ -147,8 +164,9 @@ Port 4200 is also used by `identity-web` (the test client); run one of them at a
 4. Language switch in the header (sets `lang` to `ka`), certificates (PDF) after passing a test,
    and removing a student's progress/results in vitrix-api when they delete their account.
 5. Connect Apply and Contact forms to a real inbox (they currently only show a confirmation).
-6. Password reset and email verification (identity-api needs an email sender).
-7. Set `PRIVACY_CONTACT_EMAIL` in `site-data.ts` to a real, monitored address.
+6. ~~Password reset and email verification~~ done (Gmail SMTP). With a domain (e.g. vitrix.ge),
+   move sending to a service like Resend/Brevo for better delivery: only `Email__*` settings change.
+7. ~~Set `PRIVACY_CONTACT_EMAIL`~~ done: `vitrix.contact1@gmail.com`.
 8. Self-host the Google Fonts (privacy: Google currently receives visitors' IP addresses).
 
 Update this file when you finish a roadmap item or change how something works.

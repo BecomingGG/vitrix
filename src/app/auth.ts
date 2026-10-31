@@ -9,6 +9,8 @@ export interface Member {
   name: string;
   email: string;
   roles: string[];
+  /** True once the member clicked the link in the confirmation email. */
+  emailVerified: boolean;
   /** Course ids from COURSES. Filled by the future purchase flow (from an API). */
   courses: string[];
 }
@@ -91,6 +93,101 @@ export class Auth {
     } catch (error) {
       throw new Error(describeError(error));
     }
+  }
+
+  /**
+   * Confirms the email address with the user id and token from the link in the confirmation email.
+   * If someone is signed in, their token is refreshed so the change shows straight away.
+   * Returns the confirmed email address.
+   */
+  async confirmEmail(userId: string, token: string): Promise<string> {
+    this.assertEnabled();
+    let email: string;
+    try {
+      ({ email } = await firstValueFrom(
+        this.http.post<{ email: string }>(`${IDENTITY_URL}/api/account/confirm-email`, {
+          userId,
+          token,
+        }),
+      ));
+    } catch (error) {
+      throw new Error(describeError(error));
+    }
+    await this.reloadMember();
+    return email;
+  }
+
+  /** Sends the confirmation email again to the signed-in member. */
+  async resendConfirmation(): Promise<void> {
+    this.assertEnabled();
+    const token = this.accessToken();
+    if (!token) {
+      throw new Error('Your session has expired. Please log in again.');
+    }
+    try {
+      const result = await firstValueFrom(
+        this.http.post<{ alreadyConfirmed: boolean }>(
+          `${IDENTITY_URL}/api/account/resend-confirmation`,
+          {},
+          { headers: { Authorization: `Bearer ${token}` } },
+        ),
+      );
+      if (result.alreadyConfirmed) {
+        await this.reloadMember();
+      }
+    } catch (error) {
+      throw new Error(describeError(error));
+    }
+  }
+
+  /**
+   * Gets a fresh token, so changes made elsewhere (email confirmed in another tab, new role)
+   * show up. Does nothing when nobody is signed in.
+   */
+  async reloadMember(): Promise<void> {
+    const refreshToken = this.tokens?.refreshToken;
+    if (!refreshToken) {
+      return;
+    }
+    try {
+      await this.refresh(refreshToken);
+    } catch (error) {
+      console.warn('VITRIX: could not refresh the session.', error);
+    }
+  }
+
+  /** Emails a password reset link. The server answers the same whether or not the account exists. */
+  async forgotPassword(email: string): Promise<void> {
+    this.assertEnabled();
+    try {
+      await firstValueFrom(
+        this.http.post(`${IDENTITY_URL}/api/account/forgot-password`, { email: email.trim() }),
+      );
+    } catch (error) {
+      throw new Error(describeError(error));
+    }
+  }
+
+  /**
+   * Sets a new password with the user id and token from the reset email. The server signs the
+   * account out everywhere, so this also clears the local session. Returns the account's email.
+   */
+  async resetPassword(userId: string, token: string, password: string): Promise<string> {
+    this.assertEnabled();
+    let email: string;
+    try {
+      ({ email } = await firstValueFrom(
+        this.http.post<{ email: string }>(`${IDENTITY_URL}/api/account/reset-password`, {
+          userId,
+          token,
+          password,
+        }),
+      ));
+    } catch (error) {
+      throw new Error(describeError(error));
+    }
+    this.logout();
+    return email;
   }
 
   /**
@@ -253,12 +350,14 @@ function toMember(accessToken: string): Member | null {
     const email = String(claims['email'] ?? '');
     const rawName = String(claims['name'] ?? '');
     const roles = claims['role'];
+    const verified = claims['email_verified'];
     return {
       id: String(claims['sub'] ?? ''),
       email,
       // Accounts made without a name use the email as name; show the part before "@" instead.
       name: rawName && !rawName.includes('@') ? rawName : email.split('@')[0] || 'Member',
       roles: Array.isArray(roles) ? roles.map(String) : roles ? [String(roles)] : [],
+      emailVerified: verified === true || verified === 'true',
       courses: [],
     };
   } catch {

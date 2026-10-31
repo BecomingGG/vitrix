@@ -19,7 +19,13 @@
       </p>
     </div>
 
-    @if (sent()) {
+    @if (needsConfirmation()) {
+      <div>
+        <app-confirm-email-notice
+          reason="Confirm it before applying, so our admissions team can reach you."
+        />
+      </div>
+    } @else if (sent()) {
       <div class="notice" role="status">
         <h2>Application noted</h2>
         <p>

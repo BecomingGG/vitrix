@@ -21,7 +21,9 @@
         @if (detail(); as d) {
           @if (d.enrolled) {
             <p class="eyebrow">Your progress</p>
-            <h2 class="block-title progress-title">{{ completedCount() }} of {{ d.lessons.length }} lessons</h2>
+            <h2 class="block-title progress-title">
+              {{ completedCount() }} of {{ d.lessons.length }} lessons
+            </h2>
             <div
               class="progress"
               role="progressbar"
@@ -33,6 +35,10 @@
                 [style.width.%]="d.lessons.length ? (100 * completedCount()) / d.lessons.length : 0"
               ></span>
             </div>
+          } @else if (d.needsEmailConfirmation) {
+            <app-confirm-email-notice
+              reason="You are enrolled in this course: confirm your email and its lessons and tests open."
+            />
           } @else {
             <div class="notice">
               <h2>Join this course</h2>
